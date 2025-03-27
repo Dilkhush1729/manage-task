@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Task Manager Admin</title>
+    <link rel="stylesheet" href="../public/style.css">
+    <link rel="stylesheet" href="./admin.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo">
+                    <button class="sidebar-toggle" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span>Task Manager</span>
+                </a>
+                
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Main</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Management</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="users.html" class="sidebar-link active">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="tasks.html" class="sidebar-link">
+                                <i class="fas fa-tasks"></i>
+                                <span>Tasks</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="categories.html" class="sidebar-link">
+                                <i class="fas fa-tags"></i>
+                                <span>Categories</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Settings</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="settings.html" class="sidebar-link">
+                                <i class="fas fa-cog"></i>
+                                <span>Admin Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div> -->
+            </div>
+            <div class="sidebar-footer">
+                <a href="#" id="logout-button" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>User Management</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="header-action" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="admin-user" id="admin-user">
+                        <div class="user-avatar" id="user-icon">
+                            <span>A</span>
+                        </div>
+                        <div class="user-info">
+                            <span id="admin-name">Admin</span>
+                        </div>
+                        <div class="user-dropdown" id="user-block">
+                            <a href="settings.html" class="dropdown-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="dropdown-logout" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="admin-content">
+                <!-- User Stats -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.1s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Total Users</h3>
+                            <div class="card-icon primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="total-users-count">0</h2>
+                        <p class="card-label">Registered users</p>
+                    </div>
+
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.2s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Active Users</h3>
+                            <div class="card-icon success">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="active-users-count">0</h2>
+                        <p class="card-label">Users with tasks</p>
+                    </div>
+
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.3s;">
+                        <div class="card-header">
+                            <h3 class="card-title">New Users</h3>
+                            <div class="card-icon warning">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="new-users-count">0</h2>
+                        <p class="card-label">Joined this week</p>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="table-container slide-in-up" style="animation-delay: 0.4s;">
+                    <div class="table-header" style="display: flex;justify-content:space-between;">
+                        <h3 class="table-title">All Users</h3>
+                        <div class="search-container">
+                            <input type="text" id="user-search" class="form-control" placeholder="Search users...">
+                        </div>
+                        <div class="table-actions">
+                            
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Tasks</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table">
+                                <!-- Users will be loaded dynamically -->
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="pagination-info">
+                            Currently visible <span id="pagination-start">0</span> to <span id="pagination-end">0</span> from <span id="pagination-total">0</span> users
+                        </div>
+                        <div class="table-pagination" id="pagination-controls">
+                            <!-- Pagination controls will be added dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="admin-footer">
+                <div>
+                    <span>&copy; 2023 Task Manager Admin. All rights reserved.</span>
+                </div>
+                <div>
+                    <span>Version 1.0.0</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- User Details Modal -->
+    <div class="modal-backdrop" id="user-details-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">User Details</h3>
+                <button class="modal-close" id="close-user-details">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="user-details-content">
+                <!-- User details will be loaded dynamically -->
+                <div class="text-center">Loading user details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="close-user-details-btn">Close</button>
+                <button class="btn btn-primary" id="edit-user-btn">Edit User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-backdrop" id="edit-user-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit User</h3>
+                <button class="modal-close" id="close-edit-user">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-user-form">
+                    <input type="hidden" id="edit-user-id">
+                    <div class="form-group">
+                        <label for="edit-user-name">Name</label>
+                        <input type="text" id="edit-user-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-email">Email</label>
+                        <input type="email" id="edit-user-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-password">Reset Password (leave blank to keep current)</label>
+                        <input type="password" id="edit-user-password" class="form-control" placeholder="New password">
+                        <div class="form-text">Password must be at least 6 characters long.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="delete-user-btn">Delete User</button>
+                <button class="btn btn-primary" id="save-user-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-backdrop" id="confirm-delete-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Delete</h3>
+                <button class="modal-close" id="close-confirm-delete">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this user? This action cannot be undone and will delete all tasks and categories associated with this user.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-delete">Cancel</button>
+                <button class="btn btn-danger" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/admin-common.js"></script>
+    <script src="./js/users.js"></script>
+</body>
+</html>

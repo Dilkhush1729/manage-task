@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button id="menu-toggle" class="icon-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="app-title">Task Manager</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search tasks">
+                </div>
+                <div>
+                    <button id="calendar-view-enable" class="icon-button" title="Access Your All Task in Calendar View">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </button>
+                </div>
+                <button id="settings-button" class="icon-button">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <div class="user-dropdown">
+                    <div class="user-avatar">
+                        <span>D</span>
+                    </div>
+                    <div class="user-dropdown-content">
+                        <div class="user-info">
+                            <span id="username">User</span>
+                            <span class="user-email" id="user-email">user@example.com</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <button id="logout-button" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <button id="create-task-button" class="create-button">
+                    <i class="fas fa-plus"></i>
+                    <span>Create Task</span>
+                </button>
+
+                <!-- Views -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Views</h3>
+                    <ul class="sidebar-list">
+                        <li class="sidebar-item active" data-view="all">
+                            <i class="fas fa-tasks"></i>
+                            <span>All Tasks</span>
+                            <span class="task-count" id="all-count">0</span>
+                        </li>
+                        <li class="sidebar-item" data-view="today">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>Today</span>
+                            <span class="task-count" id="today-count">0</span>
+                        </li>
+                        <li class="sidebar-item" data-view="upcoming">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Upcoming</span>
+                            <span class="task-count" id="upcoming-count">0</span>
+                        </li>
+                        <li class="sidebar-item" data-view="completed">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Completed</span>
+                            <span class="task-count" id="completed-count">0</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div class="sidebar-section">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">Categories</h3>
+                        <button id="add-category-button" class="small-icon-button">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <ul class="sidebar-list" id="categories-list">
+                        <!-- Categories will be added dynamically -->
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Task Content -->
+            <div class="task-content" id="calendar-grid">
+                <div class="task-header">
+                    <h2 id="current-view-title">All Tasks</h2>
+                    <div class="task-actions">
+                        <div class="dropdown">
+                            <button class="dropdown-button">
+                                <span>Sort By</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="#" data-sort="date-asc">Date (Oldest First)</a>
+                                <a href="#" data-sort="date-desc">Date (Newest First)</a>
+                                <a href="#" data-sort="priority-high">Priority (High First)</a>
+                                <a href="#" data-sort="priority-low">Priority (Low First)</a>
+                                <a href="#" data-sort="name-asc">Name (A-Z)</a>
+                                <a href="#" data-sort="name-desc">Name (Z-A)</a>
+                            </div>
+                        </div>
+                        <button id="grid-view-button" class="view-button active">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button id="list-view-button" class="view-button">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Task Grid & calendar view -->
+                <div class="task-grid" id="task-container">
+                    <!-- Tasks will be added dynamically -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Create New Task</h2>
+                <button id="close-modal" class="close-button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="task-form">
+                    <input type="hidden" id="task-id">
+                    <div class="form-group">
+                        <label for="task-name">Task Name</label>
+                        <input type="text" id="task-name" placeholder="Enter task name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description">Description</label>
+                        <textarea id="task-description" placeholder="Enter task description"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="due-date">Due Date</label>
+                            <input type="date" id="due-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="due-time">Due Time</label>
+                            <input type="time" id="due-time">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-category">Category</label>
+                            <select id="task-category">
+                                <!-- Categories will be added dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-priority">Priority</label>
+                            <select id="task-priority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="delete-task" class="delete-button">Delete</button>
+                        <button type="submit" id="save-task" class="save-button">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="category-modal-title">Add Category</h2>
+                <button id="close-category-modal" class="close-button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="category-form">
+                    <input type="hidden" id="category-id">
+                    <div class="form-group">
+                        <label for="category-name">Category Name</label>
+                        <input type="text" id="category-name" placeholder="Enter category name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category-color">Color</label>
+                        <div class="color-picker">
+                            <div class="color-option" data-color="#4f46e5" style="background-color: #4f46e5;"></div>
+                            <div class="color-option" data-color="#10b981" style="background-color: #10b981;"></div>
+                            <div class="color-option" data-color="#ef4444" style="background-color: #ef4444;"></div>
+                            <div class="color-option" data-color="#f59e0b" style="background-color: #f59e0b;"></div>
+                            <div class="color-option" data-color="#8b5cf6" style="background-color: #8b5cf6;"></div>
+                            <div class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></div>
+                            <div class="color-option" data-color="#06b6d4" style="background-color: #06b6d4;"></div>
+                            <div class="color-option" data-color="#84cc16" style="background-color: #84cc16;"></div>
+                        </div>
+                        <input type="hidden" id="category-color" value="#4f46e5">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="delete-category" class="delete-button">Delete</button>
+                        <button type="submit" class="save-button" id="save-category">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div class="modal" id="task-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="task-details-title">Task Details</h2>
+                <div class="modal-header-actions">
+                    <button id="edit-task-button" class="icon-button">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button id="close-details-modal" class="close-button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="task-details-content">
+                    <div class="task-details-info">
+                        <div class="task-details-row">
+                            <i class="fas fa-calendar"></i>
+                            <span id="task-details-date">No due date</span>
+                        </div>
+                        <div class="task-details-row">
+                            <i class="fas fa-tag"></i>
+                            <span id="task-details-category">No category</span>
+                        </div>
+                        <div class="task-details-row">
+                            <i class="fas fa-flag"></i>
+                            <span id="task-details-priority">Medium</span>
+                        </div>
+                    </div>
+                    <div class="task-details-description">
+                        <h3>Description</h3>
+                        <p id="task-details-description-text">No description provided.</p>
+                    </div>
+                </div>
+                <div class="task-details-actions">
+                    <button id="complete-task-button" class="complete-button">
+                        <i class="fas fa-check"></i>
+                        <span>Mark as Complete</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Offcanvas -->
+    <div class="settings-overlay" id="settings-overlay"></div>
+    <div class="settings-offcanvas" id="settings-offcanvas">
+        <div class="offcanvas-header">
+            <h2>Settings</h2>
+            <button class="close-button" id="close-settings" aria-label="Close settings">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-content">
+            <!-- Account Info -->
+            <div class="settings-section">
+                <h3>Account</h3>
+                <div class="account-info">
+                    <div class="user-avatar-large">
+                        <span id="user-initial">U</span>
+                    </div>
+                    <div class="account-details">
+                        <p id="account-name">User Name</p>
+                        <p id="account-email" class="text-muted">user@example.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import/Export Task -->
+            <div class="settings-section">
+                <h3>Import / Export Task</h3>
+                <div class="settings-buttons">
+                    <label for="importTasks" class="settings-action-button">
+                        <i class="fas fa-file-import"></i>
+                        Import Tasks (CSV)
+                        <input type="file" id="importTasks" accept=".csv" hidden>
+                    </label>
+                    <button class="settings-action-button" id="exportTasks">
+                        <i class="fas fa-file-export"></i>
+                        Export Tasks (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Import/Export Category -->
+            <div class="settings-section">
+                <h3>Import / Export Categories</h3>
+                <div class="settings-buttons">
+                    <label for="importCategories" class="settings-action-button">
+                        <i class="fas fa-file-import"></i>
+                        Import Categories (CSV)
+                        <input type="file" id="importCategories" accept=".csv" hidden>
+                    </label>
+                    <button class="settings-action-button" id="exportCategories">
+                        <i class="fas fa-file-export"></i>
+                        Export Categories (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div class="settings-section">
+                <h3>Theme</h3>
+                <div class="theme-toggle">
+                    <span class="theme-label">Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-switch">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Logout Button -->
+            <div class="settings-section">
+                <button class="logout-button" id="settings-logout-button">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <div class="overlay" id="overlay"></div>
+
+    <div id="notification-container"></div>
+
+    <!-- Delete Modal Structure -->
+    <div id="confirmationModal">
+        <div class="delete-modal-content">
+            <p>Are you sure you want to delete this category?</p>
+            <button id="confirm-btn">Yes, Delete</button>
+            <button id="cancel-btn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in before loading main script
+        (function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'main.html';
+            } else {
+                // Set user info
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (user) {
+                    const userInitial = document.getElementById('user-initial');
+                    const accountName = document.getElementById('account-name');
+                    const accountEmail = document.getElementById('account-email');
+                    const username = document.getElementById('username');
+                    const userEmail = document.getElementById('user-email');
+                    
+                    if (userInitial) userInitial.textContent = user.name.charAt(0).toUpperCase();
+                    if (accountName) accountName.textContent = user.name;
+                    if (accountEmail) accountEmail.textContent = user.email;
+                    if (username) username.textContent = user.name;
+                    if (userEmail) userEmail.textContent = user.email;
+                }
+                
+                // Setup logout buttons
+                document.getElementById('logout-button').addEventListener('click', function() {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'main.html';
+                });
+                
+                if (document.getElementById('settings-logout-button')) {
+                    document.getElementById('settings-logout-button').addEventListener('click', function() {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'main.html';
+                    });
+                }
+            }
+        })();
+    </script>
+
+    <script src="./managetask.js"></script>
+</body>
+
+</html>

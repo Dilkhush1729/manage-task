@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - Task Manager</title>
+    <link rel="stylesheet" href="../public/style.css">
+    <link rel="stylesheet" href="./admin.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo">
+                    <button class="sidebar-toggle" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span>Task Manager</span>
+                </a>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Main</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Management</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="users.html" class="sidebar-link">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="tasks.html" class="sidebar-link">
+                                <i class="fas fa-tasks"></i>
+                                <span>Tasks</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="categories.html" class="sidebar-link active">
+                                <i class="fas fa-tags"></i>
+                                <span>Categories</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Settings</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="settings.html" class="sidebar-link">
+                                <i class="fas fa-cog"></i>
+                                <span>Admin Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div> -->
+            </div>
+            <div class="sidebar-footer">
+                <a href="#" id="logout-button" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>Admin Settings</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="header-action" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="admin-user" id="admin-user">
+                        <div class="user-avatar">
+                            <span>A</span>
+                        </div>
+                        <div class="user-info">
+                            <span id="admin-name">Admin</span>
+                        </div>
+                        <div class="user-dropdown">
+                            <a href="settings.html" class="dropdown-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="dropdown-logout" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="settings-container">
+                    <!-- Profile Settings -->
+                    <div class="form-container slide-in-up" style="animation-delay: 0.1s;">
+                        <div class="form-header">
+                            <h2 class="form-title">Profile Settings</h2>
+                            <p class="form-description">Update your admin profile information</p>
+                        </div>
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label for="admin-display-name">Display Name</label>
+                                <input type="text" id="admin-display-name" class="form-control" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label for="admin-email">Email Address</label>
+                                <input type="email" id="admin-email" class="form-control" placeholder="your@email.com">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save Profile</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="form-container slide-in-up" style="animation-delay: 0.2s;">
+                        <div class="form-header">
+                            <h2 class="form-title">Change Password</h2>
+                            <p class="form-description">Update your admin account password</p>
+                        </div>
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" class="form-control" placeholder="Current password">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" class="form-control" placeholder="New password">
+                                <div class="form-text">Password must be at least 6 characters long.</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm New Password</label>
+                                <input type="password" id="confirm-password" class="form-control" placeholder="Confirm new password">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="update-password-btn">Change Password</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Secondary Admin Account -->
+                    <div class="form-container slide-in-up" style="animation-delay: 0.3s;">
+                        <div class="form-header">
+                            <h2 class="form-title">Secondary Admin Account</h2>
+                            <p class="form-description">Create a secondary admin account (maximum 2 admin accounts allowed)</p>
+                        </div>
+                        <div id="secondary-admin-container">
+                            <div class="text-center">Loading secondary admin information...</div>
+                        </div>
+                    </div>
+
+                    <!-- Appearance Settings -->
+                    <div class="form-container slide-in-up" style="animation-delay: 0.4s;">
+                        <div class="form-header">
+                            <h2 class="form-title">Appearance</h2>
+                            <p class="form-description">Customize the admin panel appearance</p>
+                        </div>
+                        <form id="appearance-form">
+                            <div class="form-group">
+                                <label>Theme</label>
+                                <div class="theme-options">
+                                    <div class="theme-option" data-theme="light">
+                                        <div class="theme-preview light-theme"></div>
+                                        <span>Light</span>
+                                    </div>
+                                    <div class="theme-option" data-theme="dark">
+                                        <div class="theme-preview dark-theme"></div>
+                                        <span>Dark</span>
+                                    </div>
+                                    <div class="theme-option" data-theme="system">
+                                        <div class="theme-preview system-theme"></div>
+                                        <span>System</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Sidebar Position</label>
+                                <div class="radio-group">
+                                    <label class="radio-container">
+                                        <input type="radio" name="sidebar-position" value="left" checked>
+                                        <span class="radio-label">Left</span>
+                                    </label>
+                                    <label class="radio-container">
+                                        <input type="radio" name="sidebar-position" value="right">
+                                        <span class="radio-label">Right</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save Appearance</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="admin-footer">
+                <div>
+                    <span>&copy; 2023 Task Manager Admin. All rights reserved.</span>
+                </div>
+                <div>
+                    <span>Version 1.0.0</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Create Secondary Admin Modal -->
+    <div class="modal-backdrop" id="create-admin-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Secondary Admin</h3>
+                <button class="modal-close" id="close-create-admin">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="create-admin-form">
+                    <div class="form-group">
+                        <label for="secondary-admin-name">Admin Name</label>
+                        <input type="text" id="secondary-admin-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondary-admin-email">Email Address</label>
+                        <input type="email" id="secondary-admin-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondary-admin-password">Password</label>
+                        <input type="password" id="secondary-admin-password" class="form-control" required>
+                        <div class="form-text">Password must be at least 6 characters long.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondary-admin-confirm-password">Confirm Password</label>
+                        <input type="password" id="secondary-admin-confirm-password" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-create-admin">Cancel</button>
+                <button class="btn btn-primary" id="save-admin-btn">Create Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/admin-common.js"></script>
+    <script src="./js/settings.js"></script>
+</body>
+</html>

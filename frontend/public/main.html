@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Modern Task Management</title>
+    <link rel="stylesheet" href="../admin/login.css">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./auth.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-dark: #5541d7;
+            --secondary: #fd79a8;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #ff7675;
+            --info: #74b9ff;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --gray-dark: #495057;
+            --border: #dee2e6;
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --radius: 0.5rem;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            overflow-x: hidden;
+            background-color: var(--light);
+        }
+
+        /* Utility Classes */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 0.5rem;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        .mobile-auth-buttons,
+        .mobile-nav-links {
+            display: none;
+        }
+
+        .btn-outline {
+            background-color: white;
+            color: var(--primary-dark);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 2rem;
+        }
+
+        .mb-5 {
+            margin-bottom: 3rem;
+        }
+
+        .mt-1 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mt-3 {
+            margin-top: 1.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 2rem;
+        }
+
+        .mt-5 {
+            margin-top: 3rem;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1rem 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            padding: 0.75rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 1.75rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 0 6rem;
+            background: linear-gradient(135deg, rgba(130, 160, 267, 1.1) 1%, rgb(61 37 191 / 111%) 44%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .hero-text {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            color: white;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-light);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            animation: fadeInUp 1s ease-out 0.4s;
+            animation-fill-mode: both;
+        }
+
+        .hero-image {
+            flex: 1;
+            max-width: 550px;
+            animation: floatAnimation 3s ease-in-out infinite;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .shape {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .shape-1 {
+            top: 10%;
+            left: 5%;
+            width: 100px;
+            height: 100px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            filter: blur(30px);
+            animation: moveShape 15s linear infinite;
+        }
+
+        .shape-2 {
+            bottom: 10%;
+            right: 5%;
+            width: 150px;
+            height: 150px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: moveShape 20s linear infinite reverse;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            background-color: white;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray);
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(108, 92, 231, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 6rem 0;
+            background-color: var(--gray-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--gray);
+        }
+
+        .step-line {
+            position: absolute;
+            top: 0;
+            left: 25px;
+            width: 2px;
+            height: 100%;
+            background-color: var(--primary);
+            z-index: 0;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            padding: 6rem 0;
+            background-color: white;
+        }
+
+        .testimonials-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .testimonial-cards {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding: 1rem 0.5rem;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+
+        .testimonial-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        .testimonial-card {
+            flex: 0 0 350px;
+            scroll-snap-align: start;
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-light);
+            transition: var(--transition);
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .testimonial-content {
+            font-style: italic;
+            color: var(--gray-dark);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .testimonial-content::before {
+            content: '"';
+            font-size: 4rem;
+            color: rgba(108, 92, 231, 0.1);
+            position: absolute;
+            top: -1.5rem;
+            left: -1rem;
+            font-family: serif;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .author-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .author-info p {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        .testimonial-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--gray-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dot.active {
+            background-color: var(--primary);
+            transform: scale(1.3);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 6rem 0;
+            background-color: var(--gray-light);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 2.5rem 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card.popular {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            z-index: 1;
+        }
+
+        .pricing-card.popular::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 1.5rem;
+            right: -2rem;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.25rem 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transform: rotate(45deg);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .pricing-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .pricing-price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--gray);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-features i {
+            color: var(--success);
+            margin-right: 0.5rem;
+        }
+
+        .pricing-features i.disabled {
+            color: var(--gray-light);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-light {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        .btn-light:hover {
+            background-color: var(--gray-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-outline-light {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-outline-light:hover {
+            background-color: white;
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo i {
+            font-size: 1.75rem;
+        }
+
+        .footer-description {
+            color: var(--gray-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--gray-light);
+            font-size: 0.875rem;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: var(--transition);
+        }
+
+        .modal-backdrop.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-check-input {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .form-check-label {
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes floatAnimation {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes moveShape {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(50px, 50px);
+            }
+
+            50% {
+                transform: translate(0, 100px);
+            }
+
+            75% {
+                transform: translate(-50px, 50px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .pricing-card.popular {
+                transform: scale(1);
+            }
+
+            .pricing-card.popular:hover {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .mobile-auth-buttons,
+            .mobile-nav-links {
+                display: block;
+            }
+
+            .nav-links,
+            .auth-buttons {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: white;
+                z-index: 1000;
+                padding: 2rem;
+                transform: translateX(-100%);
+                transition: var(--transition);
+            }
+
+            .mobile-menu.show {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+
+            .mobile-menu-close {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--dark);
+                cursor: pointer;
+            }
+
+            .mobile-nav-links {
+                list-style: none;
+                margin-bottom: 2rem;
+            }
+
+            .mobile-nav-links li {
+                margin-bottom: 1rem;
+            }
+
+            .mobile-nav-links a {
+                color: var(--dark);
+                text-decoration: none;
+                font-weight: 500;
+                font-size: 1.25rem;
+                display: block;
+                padding: 0.5rem 0;
+                transition: var(--transition);
+            }
+
+            .mobile-nav-links a:hover {
+                color: var(--primary);
+            }
+
+            .mobile-auth-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .step {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .cta-title {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 1.75rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .section-subtitle {
+                font-size: 1rem;
+            }
+
+            .feature-card,
+            .step,
+            .testimonial-card,
+            .pricing-card {
+                padding: 1.5rem;
+            }
+
+            .cta-title {
+                font-size: 1.75rem;
+            }
+
+            .cta-subtitle {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-tasks"></i>
+                <span>TaskFlow</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#testimonials">Testimonials</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <!-- <a href="#" class="btn btn-outline" id="login-btn">Login</a> -->
+                <a href="#" class="btn btn-primary" id="login-signup-btn">Join as a User</a>
+                <a href="#" class="btn btn-secondary" id="admin-login-btn">Login as an Admin</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-header">
+            <a href="#" class="logo">
+                <i class="fas fa-tasks"></i>
+                <span>TaskFlow</span>
+            </a>
+            <button class="mobile-menu-close" id="mobile-menu-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+        </ul>
+        <div class="mobile-auth-buttons">
+            <a href="#" class="btn btn-outline" id="mobile-login-btn">Login</a>
+            <a href="#" class="btn btn-primary" id="mobile-signup-btn">Sign Up</a>
+            <a href="#" class="btn btn-secondary" id="mobile-admin-login-btn">Admin Login</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">Manage Tasks with Ease and Efficiency</h1>
+                <p class="hero-subtitle">TaskFlow helps you organize your work, collaborate with your team, and achieve
+                    your goals faster than ever before.</p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary" id="hero-signup-btn">
+                        <i class="fas fa-user-plus"></i>
+                        Get Started
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline">
+                        <i class="fas fa-play"></i>
+                        How It Works
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="https://placehold.co/600x400/6c5ce7/ffffff?text=Task+Manager+Dashboard"
+                    alt="TaskFlow Dashboard">
+            </div>
+        </div>
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features</h2>
+            <p class="section-subtitle">TaskFlow comes packed with all the tools you need to manage your tasks
+                efficiently and boost your productivity.</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3 class="feature-title">Task Management</h3>
+                    <p class="feature-description">Create, organize, and prioritize tasks with ease. Set due dates, add
+                        descriptions, and track progress.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">Team Collaboration</h3>
+                    <p class="feature-description">Share tasks with team members, assign responsibilities, and
+                        collaborate in real-time.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Progress Tracking</h3>
+                    <p class="feature-description">Monitor your progress with visual charts and statistics. Stay on top
+                        of deadlines and achievements.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="feature-title">Notifications</h3>
+                    <p class="feature-description">Get timely reminders for upcoming deadlines and important tasks.
+                        Never miss a deadline again.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h3 class="feature-title">Categories & Tags</h3>
+                    <p class="feature-description">Organize tasks with custom categories and tags. Filter and find what
+                        you need instantly.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Mobile Friendly</h3>
+                    <p class="feature-description">Access your tasks from anywhere with our responsive design that works
+                        on all devices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Getting started with TaskFlow is simple. Follow these steps to boost your
+                productivity.</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Create an Account</h3>
+                        <p class="step-description">Sign up for a free account in seconds. No credit card required to
+                            get started with our basic plan.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Add Your Tasks</h3>
+                        <p class="step-description">Create tasks, set priorities, add due dates, and organize them into
+                            categories that make sense for you.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Collaborate with Your Team</h3>
+                        <p class="step-description">Invite team members, assign tasks, and work together efficiently
+                            with real-time updates.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Track Progress & Complete Tasks</h3>
+                        <p class="step-description">Monitor your progress, get notifications for upcoming deadlines, and
+                            enjoy the satisfaction of completing tasks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Users Say</h2>
+            <p class="section-subtitle">Don't just take our word for it. Here's what people who use TaskFlow have to
+                say.</p>
+
+            <div class="testimonials-container">
+                <div class="testimonial-cards">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            TaskFlow has completely transformed how our team manages projects. The intuitive interface
+                            and powerful features have boosted our productivity by at least 30%.
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="https://placehold.co/100x100/6c5ce7/ffffff?text=JS" alt="John Smith">
+                            </div>
+                            <div class="author-info">
+                                <h4>John Smith</h4>
+                                <p>Project Manager, TechCorp</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            As a freelancer juggling multiple clients, TaskFlow has been a game-changer. I can organize
+                            my work by client, set priorities, and never miss a deadline.
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="https://placehold.co/100x100/fd79a8/ffffff?text=SJ" alt="Sarah Johnson">
+                            </div>
+                            <div class="author-info">
+                                <h4>Sarah Johnson</h4>
+                                <p>Freelance Designer</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            The team collaboration features in TaskFlow are exceptional. We've reduced our meeting time
+                            by 50% because everyone can see task status in real-time.
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="https://placehold.co/100x100/00b894/ffffff?text=MP" alt="Michael Patel">
+                            </div>
+                            <div class="author-info">
+                                <h4>Michael Patel</h4>
+                                <p>Team Lead, Innovate Inc.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-dots">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">Choose the plan that works best for you and your team. All plans include a
+                14-day free trial.</p>
+
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Basic</h3>
+                    <div class="pricing-price">$0<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Up to 10 tasks</li>
+                        <li><i class="fas fa-check"></i> Basic task management</li>
+                        <li><i class="fas fa-check"></i> 1 user only</li>
+                        <li><i class="fas fa-times disabled"></i> Team collaboration</li>
+                        <li><i class="fas fa-times disabled"></i> Advanced reporting</li>
+                        <li><i class="fas fa-times disabled"></i> Priority support</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline">Get Started</a>
+                </div>
+
+                <div class="pricing-card popular">
+                    <h3 class="pricing-title">Pro</h3>
+                    <div class="pricing-price">$4<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Unlimited tasks</li>
+                        <li><i class="fas fa-check"></i> Advanced task management</li>
+                        <li><i class="fas fa-check"></i> Up to 5 users</li>
+                        <li><i class="fas fa-check"></i> Team collaboration</li>
+                        <li><i class="fas fa-check"></i> Basic reporting</li>
+                        <li><i class="fas fa-times disabled"></i> Priority support</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary">Get Started</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Enterprise</h3>
+                    <div class="pricing-price">$8<span>/month</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Unlimited tasks</li>
+                        <li><i class="fas fa-check"></i> Advanced task management</li>
+                        <li><i class="fas fa-check"></i> Unlimited users</li>
+                        <li><i class="fas fa-check"></i> Team collaboration</li>
+                        <li><i class="fas fa-check"></i> Advanced reporting</li>
+                        <li><i class="fas fa-check"></i> Priority support</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2 class="cta-title">Ready to Boost Your Productivity?</h2>
+            <p class="cta-subtitle">Join thousands of users who are already managing their tasks more efficiently with
+                TaskFlow.</p>
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-light" id="cta-signup-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Sign Up Now
+                </a>
+                <a href="#" class="btn btn-outline-light" id="cta-demo-btn">
+                    <i class="fas fa-play-circle"></i>
+                    Watch Demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <a href="#" class="footer-logo">
+                        <i class="fas fa-tasks"></i>
+                        <span>TaskFlow</span>
+                    </a>
+                    <p class="footer-description">TaskFlow is the ultimate task management solution for individuals and
+                        teams looking to boost productivity and streamline workflows.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#testimonials">Testimonials</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="footer-title">Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Community</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="footer-title">Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 TaskFlow. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Signup Modal -->
+    <div class="modal-backdrop" id="signup-modal">
+        <div class="user-register-modal">
+            <div class="admin-head">
+                <div style="text-align: end;" id="close-user-login-btn">x</div>
+            </div>
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-forms-container">
+                        <!-- Login Form (Initially Hidden) -->
+                        <div class="auth-form-wrapper" id="login-wrapper">
+                            <div class="auth-side-content">
+                                <h2>Hello, Friend!</h2>
+                                <p>Enter your personal details and start your task manager journey with us</p>
+                            </div>
+                            <div class="auth-form-content">
+                                <div class="auth-header">
+                                    <h1 class="auth-title">Welcome Back!</h1>
+                                    <p class="auth-subtitle">Sign in to continue to your tasks</p>
+                                </div>
+                                <form id="login-form" class="auth-form">
+                                    <div class="form-message error" id="user-login-error"></div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="user-login-email" name="email"
+                                                placeholder="Email Address" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="user-login-password" name="password"
+                                                placeholder="Password" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="auth-button">
+                                            <span>Login</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                                <div class="auth-footer">
+                                    <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Register Form -->
+                        <div class="auth-form-wrapper active" id="register-wrapper">
+                            <div class="auth-form-content">
+                                <div class="auth-header">
+                                    <h1 class="auth-title">Create Account</h1>
+                                    <p class="auth-subtitle">Sign up to get started</p>
+                                </div>
+                                <form id="register-form" class="auth-form">
+                                    <div class="form-message error" id="register-error"></div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-user"></i>
+                                            <input type="text" id="name" name="name" placeholder="Full Name" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="user-email" name="email" placeholder="Email Address"
+                                                required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="user-password" name="password"
+                                                placeholder="Password" required minlength="6">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                                placeholder="Confirm Password" required minlength="6">
+                                        </div>
+                                    </div>
+                                    <div class="form-group terms-checkbox">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" required>
+                                            <span class="checkmark"></span>
+                                            I agree to the <a href="#">Terms & Conditions</a>
+                                        </label>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="auth-button">
+                                            <span>Register</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                                <div class="auth-footer">
+                                    <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+                                </div>
+                            </div>
+                            <div class="auth-side-content">
+                                <h2>Glad to see you!</h2>
+                                <p>Welcome! Please fill in these fields to sign up for your account.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal-backdrop" id="admin-login-modal">
+        <div class="admin-modal">
+            <div class="admin-head">
+                <div style="text-align: end;" id="close-admin-login-btn">x</div>
+            </div>
+            <div class="auth-container">
+                <div class="auth-card admin-login-card">
+                    <div class="auth-forms-container">
+                        <div class="auth-form-wrapper active">
+                            <div class="auth-form-content">
+                                <div class="auth-header">
+                                    <h1 class="auth-title">Admin Login</h1>
+                                    <p class="auth-subtitle">Sign in to access the admin dashboard</p>
+                                </div>
+                                <form id="admin-login-form" class="auth-form">
+                                    <div class="form-message error" id="login-error"></div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="email" name="email" placeholder="Admin Email"
+                                                required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="password" name="password" placeholder="Password"
+                                                required>
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="auth-button">
+                                            <span>Login</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="auth-side-content">
+                                <h2>Admin Portal</h2>
+                                <p>Welcome to the Task Manager admin portal. Please login with your admin credentials to
+                                    continue.</p>
+                                <div class="admin-icon">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin/js/admin-login.js"></script>
+    <script src="./auth.js"></script>
+
+    <script>
+        // DOM Elements
+        const header = document.getElementById('header');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+
+        // Modal Elements
+        const signupBtn = document.getElementById('login-signup-btn');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        const mobileSignupBtn = document.getElementById('mobile-signup-btn');
+        const mobileAdminLoginBtn = document.getElementById('mobile-admin-login-btn');
+        const heroSignupBtn = document.getElementById('hero-signup-btn');
+        const ctaSignupBtn = document.getElementById('cta-signup-btn');
+
+        const loginModal = document.getElementById('login-modal');
+        const signupModal = document.getElementById('signup-modal');
+        const adminLoginModal = document.getElementById('admin-login-modal');
+
+        const closeSignupModal = document.getElementById('close-user-login-btn');
+        const closeAdminLoginModal = document.getElementById('close-admin-login-modal');
+
+        const closeAdminLoginBtn = document.getElementById('close-admin-login-btn');
+
+        // Testimonial Elements
+        const testimonialDots = document.querySelectorAll('.dot');
+        const testimonialCards = document.querySelector('.testimonial-cards');
+
+        // Event Listeners
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile Menu
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('show');
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.remove('show');
+        });
+
+        // Modal Functions
+        function openModal(modal) {
+            modal.classList.add('show');
+        }
+
+        function closeModal(modal) {
+            modal.classList.remove('show');
+        }
+
+
+        mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileMenu.classList.remove('show');
+            openModal(loginModal);
+        });
+
+        // Signup Modal
+        signupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupModal.style.display = 'block'
+            openModal(signupModal);
+        });
+
+        mobileSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileMenu.classList.remove('show');
+            openModal(signupModal);
+        });
+
+        heroSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(signupModal);
+        });
+
+        ctaSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(signupModal);
+        });
+
+        // Admin Login Modal
+        adminLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(adminLoginModal);
+        });
+        closeSignupModal.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeModal(signupModal)
+        })
+
+        mobileAdminLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileMenu.classList.remove('show');
+            openModal(adminLoginModal);
+        });
+
+        if (closeAdminLoginModal) {
+            closeAdminLoginModal.addEventListener('click', () => {
+                closeModal(adminLoginModal);
+            });
+        }
+
+        closeAdminLoginBtn.addEventListener('click', () => {
+            closeModal(adminLoginModal);
+        });
+
+        // Testimonial Slider
+        testimonialDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                // Update active dot
+                testimonialDots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+
+                // Scroll to the corresponding testimonial
+                const testimonialWidth = document.querySelector('.testimonial-card').offsetWidth + 32; // 32 is the gap
+                testimonialCards.scrollTo({
+                    left: testimonialWidth * index,
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                if (this.getAttribute('href') === '#') return;
+
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if (targetId === '#hero-signup-btn' || targetId === '#cta-signup-btn') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, // 80px offset for the header
+                        behavior: 'smooth'
+                    });
+
+                    // Close mobile menu if open
+                    mobileMenu.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

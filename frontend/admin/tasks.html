@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management - Task Manager Admin</title>
+    <link rel="stylesheet" href="../public/style.css">
+    <link rel="stylesheet" href="./admin.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styling for tasks page */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .badge-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .badge-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .task-name-cell {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .task-description {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .bulk-actions {
+            display: none;
+            gap: 0.5rem;
+        }
+        
+        .modal {
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo">
+                    <button class="sidebar-toggle" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span>Task Manager</span>
+                </a>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Main</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Management</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="users.html" class="sidebar-link">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="tasks.html" class="sidebar-link active">
+                                <i class="fas fa-tasks"></i>
+                                <span>Tasks</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="categories.html" class="sidebar-link">
+                                <i class="fas fa-tags"></i>
+                                <span>Categories</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- <div class="sidebar-section">
+                    <h5 class="sidebar-section-title">Settings</h5>
+                    <ul class="sidebar-menu">
+                        <li class="sidebar-item">
+                            <a href="settings.html" class="sidebar-link">
+                                <i class="fas fa-cog"></i>
+                                <span>Admin Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div> -->
+            </div>
+            <div class="sidebar-footer">
+                <a href="#" id="logout-button" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>Task Management</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="header-action" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="admin-user" id="admin-user">
+                        <div class="user-avatar" id="user-icon">
+                            <span>A</span>
+                        </div>
+                        <div class="user-info">
+                            <span id="admin-name">Admin</span>
+                        </div>
+                        <div class="user-dropdown" id="user-block">
+                            <a href="settings.html" class="dropdown-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="dropdown-logout" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="admin-content">
+                <!-- Task Stats -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.1s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Total Tasks</h3>
+                            <div class="card-icon primary">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="total-tasks-count">0</h2>
+                        <p class="card-label">Created tasks</p>
+                    </div>
+
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.2s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Completed</h3>
+                            <div class="card-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="completed-tasks-count">0</h2>
+                        <p class="card-label">Completed tasks</p>
+                    </div>
+
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.3s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Pending</h3>
+                            <div class="card-icon warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="pending-tasks-count">0</h2>
+                        <p class="card-label">Tasks in progress</p>
+                    </div>
+
+                    <div class="dashboard-card slide-in-up" style="animation-delay: 0.4s;">
+                        <div class="card-header">
+                            <h3 class="card-title">High Priority</h3>
+                            <div class="card-icon danger">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                        <h2 class="card-value" id="high-priority-count">0</h2>
+                        <p class="card-label">High priority tasks</p>
+                    </div>
+                </div>
+
+                <!-- Tasks Table -->
+                <div class="table-container slide-in-up" style="animation-delay: 0.5s;">
+                    <h3 class="table-title" style="padding: 30px 25px 0px;">All Tasks</h3>
+                    <div class="table-header">
+                        <div class="table-actions">
+                            <div class="search-container">
+                                <input type="text" id="task-search" class="form-control" placeholder="Search tasks...">
+                            </div>
+                            <div class="filter-container">
+                                <select id="user-filter" class="form-select">
+                                    <option value="">All Users</option>
+                                </select>
+                                <select id="status-filter" class="form-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                                <select id="priority-filter" class="form-select">
+                                    <option value="">All Priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                            <button class="table-action primary" id="create-task-btn">
+                                <i class="fas fa-plus"></i>
+                                <span>Create Task</span>
+                            </button>
+                            <div class="dropdown">
+                                <button class="table-action" id="export-dropdown-btn">
+                                    <i class="fas fa-download"></i>
+                                    <span>Export</span>
+                                </button>
+                                <div class="dropdown-menu" id="export-dropdown">
+                                    <a href="#" id="export-csv-btn" class="dropdown-item">
+                                        <i class="fas fa-file-csv"></i>
+                                        <span>Export as CSV</span>
+                                    </a>
+                                    <a href="#" id="export-json-btn" class="dropdown-item">
+                                        <i class="fas fa-file-code"></i>
+                                        <span>Export as JSON</span>
+                                    </a>
+                                </div>
+                            </div>
+                            <button class="table-action" id="import-task-btn">
+                                <i class="fas fa-upload"></i>
+                                <span>Import</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="select-all-tasks" class="form-check-input">
+                                        </div>
+                                    </th>
+                                    <th>Task</th>
+                                    <th>Assigned To</th>
+                                    <th>Due Date</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-table">
+                                <!-- Tasks will be loaded dynamically -->
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading tasks...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="bulk-actions" id="bulk-actions">
+                            <button class="btn btn-sm btn-danger" id="bulk-delete-btn">
+                                <i class="fas fa-trash"></i>
+                                <span>Delete Selected</span>
+                            </button>
+                            <button class="btn btn-sm btn-success" id="bulk-complete-btn">
+                                <i class="fas fa-check"></i>
+                                <span>Mark as Completed</span>
+                            </button>
+                        </div>
+                        <div class="pagination-info">
+                            Currently Visible <span id="pagination-start">0</span> to <span id="pagination-end">0</span> from <span id="pagination-total">0</span> tasks
+                        </div>
+                        <div class="table-pagination" id="pagination-controls">
+                            <!-- Pagination controls will be added dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="admin-footer">
+                <div>
+                    <span>&copy; 2023 Task Manager Admin. All rights reserved.</span>
+                </div>
+                <div>
+                    <span>Version 1.0.0</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div class="modal-backdrop" id="task-details-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Task Details</h3>
+                <button class="modal-close" id="close-task-details">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="task-details-content">
+                <!-- Task details will be loaded dynamically -->
+                <div class="text-center">Loading task details...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="close-task-details-btn">Close</button>
+                <button class="btn btn-primary" id="edit-task-btn">Edit Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Task Modal -->
+    <div class="modal-backdrop" id="edit-task-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="task-modal-title">Create Task</h3>
+                <button class="modal-close" id="close-edit-task">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-task-form">
+                    <input type="hidden" id="edit-task-id">
+                    <div class="form-group">
+                        <label for="edit-task-name">Task Name</label>
+                        <input type="text" id="edit-task-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-description">Description</label>
+                        <textarea id="edit-task-description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="edit-task-due-date">Due Date</label>
+                            <input type="date" id="edit-task-due-date" class="form-control">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="edit-task-due-time">Due Time</label>
+                            <input type="time" id="edit-task-due-time" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-user">Assigned User</label>
+                        <select id="edit-task-user" class="form-select" required>
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-category">Category</label>
+                        <select id="edit-task-category" class="form-select">
+                            <option value="">No Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-priority">Priority</label>
+                        <select id="edit-task-priority" class="form-select" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-status">Status</label>
+                        <select id="edit-task-status" class="form-select" required>
+                            <option value="false">Pending</option>
+                            <option value="true">Completed</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="delete-task-btn">Delete Task</button>
+                <button class="btn btn-primary" id="save-task-btn">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Tasks Modal -->
+    <div class="modal-backdrop" id="import-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Import Tasks</h3>
+                <button class="modal-close" id="close-import-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="import-user">Assign to User</label>
+                    <select id="import-user" class="form-select" required>
+                        <option value="">Select User</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="import-file">CSV File</label>
+                    <input type="file" id="import-file" class="form-control" accept=".csv">
+                    <div class="form-text">
+                        CSV file should have the following columns: Name, Description, Due Date, Due Time, Priority, Status
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>CSV Template</label>
+                    <div class="code-block">
+                        <pre>Name,Description,Due Date,Due Time,Priority,Status
+Task 1,Description for task 1,2023-12-31,14:00,high,false
+Task 2,Description for task 2,2023-12-31,15:00,medium,true</pre>
+                    </div>
+                    <button class="btn btn-sm btn-secondary mt-2" id="download-template-btn">
+                        <i class="fas fa-download"></i>
+                        <span>Download Template</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-import">Cancel</button>
+                <button class="btn btn-primary" id="confirm-import">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-backdrop" id="confirm-delete-modal">
+        <div class="user-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Delete</h3>
+                <button class="modal-close" id="close-confirm-delete">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the selected task(s)? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-delete">Cancel</button>
+                <button class="btn btn-danger" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/admin-common.js"></script>
+    <script src="./js/tasks.js"></script>
+</body>
+</html>
