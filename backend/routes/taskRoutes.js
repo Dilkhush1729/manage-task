@@ -1,6 +1,7 @@
 const express = require('express');
 const Task = require('../model/task.js');
 const auth  = require('../middleware/auth.js'); // Destructure auth from the module
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -49,13 +50,30 @@ router.get('/:id', async (req, res) => {
 // Update a task
 router.put('/:id', async (req, res) => {
   try {
-    const updatedTask = await Task.findOneAndUpdate(
-      { _id: req.params.id, user: req.userId },
-      req.body,
-      { new: true }
-    );
-    
-    if (!updatedTask) return res.status(404).json({ message: 'Task not found' });
+    const task = await Task.findOne({ _id: req.params.id, user: req.userId });
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    // Convert category to ObjectId if it's a valid string, otherwise keep it null
+    const newCategoryId = req.body.category && mongoose.Types.ObjectId.isValid(req.body.category) 
+      ? new mongoose.Types.ObjectId(req.body.category) 
+      : null;
+
+    // Check if category is changing (handle null case safely)
+    if ((task.category && task.category.toString()) !== (newCategoryId && newCategoryId.toString())) {
+      if (task.category) {  // Only push history if there was a previous category
+        task.categoryHistory.push({ categoryId: task.category, changedAt: new Date() });
+      }
+    }
+
+    // Update the task fields
+    task.name = req.body.name;
+    task.description = req.body.description;
+    task.dueDate = req.body.dueDate;
+    task.dueTime = req.body.dueTime;
+    task.category = newCategoryId;  // Allow setting category to null
+    task.priority = req.body.priority;
+
+    const updatedTask = await task.save();
     res.json(updatedTask);
   } catch (error) {
     res.status(400).json({ message: error.message });

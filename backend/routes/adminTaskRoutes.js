@@ -119,35 +119,32 @@ router.post('/', async (req, res) => {
 // Update task
 router.put('/:id', async (req, res) => {
   try {
-    const { name, description, dueDate, dueTime, category, priority, completed, userId } = req.body;
-    
-    // If userId is provided, validate user exists
-    if (userId) {
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    // Convert category to ObjectId if valid, otherwise keep it null
+    const newCategoryId = req.body.category && mongoose.Types.ObjectId.isValid(req.body.category) 
+      ? new mongoose.Types.ObjectId(req.body.category) 
+      : null;
+
+    // Check if the category is changing, handle null safely
+    if ((task.category && task.category.toString()) !== (newCategoryId && newCategoryId.toString())) {
+      if (task.category) { // Only push to history if there was a previous category
+        task.categoryHistory.push({ categoryId: task.category, changedAt: new Date() });
       }
     }
-    
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        description,
-        dueDate,
-        dueTime,
-        category: category || null,
-        priority,
-        completed,
-        user: userId
-      },
-      { new: true }
-    );
-    
-    if (!updatedTask) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
-    
+
+    // Update the task fields
+    task.name = req.body.name;
+    task.description = req.body.description;
+    task.dueDate = req.body.dueDate;
+    task.dueTime = req.body.dueTime;
+    task.category = newCategoryId;  // Allow setting category to null
+    task.priority = req.body.priority;
+    task.completed = req.body.completed;
+    task.user = req.body.userId;
+
+    const updatedTask = await task.save();
     res.json(updatedTask);
   } catch (error) {
     console.error('Error updating task:', error);

@@ -1,4 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+
+const categoryHistorySchema = new mongoose.Schema({
+  categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  changedAt: { type: Date, default: Date.now }
+});
 
 const taskSchema = new mongoose.Schema({
   name: {
@@ -39,7 +44,8 @@ const taskSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  categoryHistory: [categoryHistorySchema] // New field to track category changes
 });
 
 module.exports = mongoose.model('Task', taskSchema);

@@ -1369,26 +1369,28 @@ body {
 }
 
 .user-modal .modal-body {
-    padding:13px 1.25rem;
+    padding: 13px 1.25rem;
     overflow: auto;
     max-height: 500px;
     height: fit-content;
 }
 
-.dropdown{
+.dropdown {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 10px;
 }
-.dropdown-menu{
+
+.dropdown-menu {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
     width: 100%;
 }
-#user-filter{
+
+#user-filter {
     height: -webkit-fill-available;
 }
 #category-search,#task-search{
@@ -1397,4 +1399,22 @@ body {
 #export-dropdown{
     display: flex;
     
+}
+
+.task-category-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.task-category-history-table th,
+.task-category-history-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.task-category-history-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
 }

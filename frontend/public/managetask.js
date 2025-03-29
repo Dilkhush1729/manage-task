@@ -67,7 +67,7 @@ function setUserInfo() {
   if (user && userAvatar) {
     // Set initial letter of user's name in avatar
     userAvatar.querySelector('span').textContent = user.name.charAt(0).toUpperCase();
-    
+
     // Update username in sidebar if present
     const usernameElement = document.getElementById('username');
     if (usernameElement) {
@@ -87,10 +87,10 @@ function logout() {
 async function init() {
   // Check if user is authenticated
   if (!checkAuth()) return;
-  
+
   // Set user info in UI
   setUserInfo();
-  
+
   await loadFromBackend();
   renderTasks();
   renderCategories();
@@ -105,7 +105,7 @@ function setupEventListeners() {
   if (logoutButton) {
     logoutButton.addEventListener('click', logout);
   }
-  
+
   // Menu Toggle
   menuToggle.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
@@ -251,7 +251,7 @@ async function loadFromBackend() {
     });
 
     if (tasksResponse.ok) {
-      tasks = await tasksResponse.json(); 
+      tasks = await tasksResponse.json();
     } else if (tasksResponse.status === 401) {
       logout();
       return;
@@ -298,9 +298,10 @@ async function loadFromBackend() {
 
 // Task Operations
 async function addTask(task) {
+  console.log('rana task', task)
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/tasks`, {
       method: 'POST',
       headers: {
@@ -330,6 +331,9 @@ async function addTask(task) {
 }
 
 async function updateTask(id, updatedTask) {
+  console.log('test updated task ',updatedTask)
+  console.log('test updated task id ',id)
+
   try {
     const token = localStorage.getItem('token');
 
@@ -366,7 +370,7 @@ async function updateTask(id, updatedTask) {
 async function deleteTask(id) {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/tasks/${id}`, {
       method: 'DELETE',
       headers: {
@@ -394,7 +398,7 @@ async function deleteTask(id) {
 async function toggleTaskCompletion() {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/tasks/${currentTaskId}/toggle`, {
       method: 'PATCH',
       headers: {
@@ -407,7 +411,7 @@ async function toggleTaskCompletion() {
       const index = tasks.findIndex(task => task._id === currentTaskId);
       if (index !== -1) {
         tasks[index] = updated;
-        
+
         // Update button text
         if (tasks[index].completed) {
           completeTaskButton.innerHTML = '<i class="fas fa-undo"></i><span>Mark as Incomplete</span>';
@@ -436,7 +440,7 @@ async function toggleTaskCompletion() {
 async function addCategory(category) {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/categories`, {
       method: 'POST',
       headers: {
@@ -467,7 +471,7 @@ async function addCategory(category) {
 async function updateCategory(id, updatedCategory) {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/categories/${id}`, {
       method: 'PUT',
       headers: {
@@ -501,7 +505,7 @@ async function updateCategory(id, updatedCategory) {
 async function deleteCategory(id) {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/categories/${id}`, {
       method: 'DELETE',
       headers: {
@@ -512,17 +516,17 @@ async function deleteCategory(id) {
     if (response.ok) {
       categories = categories.filter(category => category._id !== id);
       // The backend will handle updating tasks that use this category
-      
+
       triggerNotification("🎯 Category deleted successfully! Time for a fresh start! 🚀");
       renderCategories();
-      
+
       // Reload tasks to get the updated category references
       const tasksResponse = await fetch(`${API_URL}/tasks`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (tasksResponse.ok) {
         tasks = await tasksResponse.json();
         renderTasks();
@@ -629,7 +633,7 @@ function renderTasks() {
         </div>
       `;
     }
-    else{
+    else {
       // List view
       taskCard.innerHTML = `
         <div class="task-checkbox ${task.completed ? 'checked' : ''}" data-id="${task._id}">
@@ -673,27 +677,27 @@ function renderTasks() {
     checkbox.addEventListener('click', async (e) => {
       e.stopPropagation(); // Prevent opening details
       const taskId = checkbox.dataset.id;
-      
+
       try {
         const token = localStorage.getItem('token');
-        
+
         const response = await fetch(`${API_URL}/tasks/${taskId}/toggle`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const updatedTask = await response.json();
           const taskIndex = tasks.findIndex(t => t._id === taskId);
-          
+
           if (taskIndex !== -1) {
             tasks[taskIndex] = updatedTask;
             renderTasks();
             updateCounts();
           }
-          
+
           if (updatedTask.completed) {
             triggerNotification("🎉 Congratulations! You have completed your task.");
           } else {
@@ -737,7 +741,7 @@ function renderEmptyState() {
     message = 'No tasks yet';
     icon = 'fas fa-tasks';
   }
-  
+
   taskContainer.innerHTML = `
     <div class="empty-state">
       <div class="empty-state-icon">
@@ -959,6 +963,18 @@ function closeCategoriesModal() {
   overlay.style.display = 'none';
 }
 
+function formatDateTime(dateString) {
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', options);
+}
+
 function openTaskDetailsModal(taskId) {
   currentTaskId = taskId;
   const task = tasks.find(task => task._id === taskId);
@@ -967,6 +983,7 @@ function openTaskDetailsModal(taskId) {
   const taskDetailsTitle = document.getElementById('task-details-title');
   const taskDetailsDate = document.getElementById('task-details-date');
   const taskDetailsCategory = document.getElementById('task-details-category');
+  const newcategoryHistory = document.getElementById('category-history-8');
   const taskDetailsPriority = document.getElementById('task-details-priority');
   const taskDetailsDescription = document.getElementById('task-details-description-text');
   const completeTaskButton = document.getElementById('complete-task-button');
@@ -975,25 +992,57 @@ function openTaskDetailsModal(taskId) {
 
   // Format date
   if (task.dueDate) {
-    taskDetailsDate.textContent = `${formatDate(task.dueDate)}${task.dueTime ? ' at ' + formatTime(task.dueTime) : ''}`;
+    taskDetailsDate.textContent = `Due Date : ${formatDate(task.dueDate)}${task.dueTime ? ' at ' + formatTime(task.dueTime) : ''}`;
   } else {
-    taskDetailsDate.textContent = 'No due date';
+    taskDetailsDate.textContent = 'Due Date : No due date';
   }
 
-  // Category
-  if (task.category) {
-    const category = categories.find(cat => cat._id === task.category);
-    if (category) {
-      taskDetailsCategory.innerHTML = `<span class="category-color" style="background-color: ${category.color}"></span> ${category.name}`;
-    } else {
-      taskDetailsCategory.textContent = 'No category';
-    }
+  const currentCategory = categories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
+
+  taskDetailsCategory.innerHTML = `Category : <span class="category-color"></span> ${currentCategory.name}`;
+
+
+  const categoryHistorydiv = document.getElementById('category-history');
+  if (task.categoryHistory.length == 0) {
+    categoryHistorydiv.style.display = 'none';
   } else {
-    taskDetailsCategory.textContent = 'No category';
+    categoryHistorydiv.style.display = 'block';
+  }
+
+  // Display category history
+  if (task.categoryHistory) {
+    const categoryHistoryRows = task.categoryHistory.map(history => {
+      const category = categories.find(cat => cat._id === history.categoryId);
+
+      // Check if the category was found
+      const categoryName = category ? category.name : 'Unknown Category';
+      const changedAt = formatDateTime(history.changedAt);
+
+      return `
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">${categoryName}</td>
+                <td style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">${changedAt}</td>
+            </tr>
+        `;
+    }).join('');
+
+    newcategoryHistory.innerHTML += `
+        <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; text-align: left;">
+            <thead>
+                <tr style="text-align: left;">
+                    <th style="padding: 8px; border: 1px solid #ccc; background-color: #f2f2f2; border-radius: 8px 8px 0 0;">Previous Category</th>
+                    <th style="padding: 8px; border: 1px solid #ccc; background-color: #f2f2f2; border-radius: 8px 8px 0 0;">Changed At</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${categoryHistoryRows}
+            </tbody>
+        </table>
+    `;
   }
 
   // Priority
-  taskDetailsPriority.innerHTML = `<span class="priority-indicator priority-${task.priority}"></span>${capitalizeFirstLetter(task.priority)}`;
+  taskDetailsPriority.innerHTML = `Priority : <div class="detail-priority"><span class="priority-indicator priority-${task.priority}"></span><span>${capitalizeFirstLetter(task.priority)}</span></div>`;
 
   // Description
   taskDetailsDescription.textContent = task.description || 'No description provided.';
@@ -1012,6 +1061,8 @@ function openTaskDetailsModal(taskId) {
 }
 
 function closeTaskDetailsModal() {
+  let newcategoryHistory = document.getElementById('category-history-8');
+  newcategoryHistory.innerHTML = '';
   taskDetailsModal.style.display = 'none';
   overlay.style.display = 'none';
 }
@@ -1027,7 +1078,7 @@ async function handleTaskSubmit(e) {
   const dueTime = document.getElementById('due-time').value;
   const category = document.getElementById('task-category').value;
   const priority = document.getElementById('task-priority').value;
-
+  
   const taskData = {
     name,
     description,
@@ -1038,6 +1089,8 @@ async function handleTaskSubmit(e) {
   };
 
   if (taskId) {
+    console.log('task-id', taskId)
+    console.log('task-data', taskData)
     await updateTask(taskId, taskData);
   } else {
     await addTask(taskData);
@@ -1082,9 +1135,9 @@ async function handleCategoryDelete() {
 }
 
 // Utility Functions
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
+// function generateId() {
+//   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+// }
 
 function getTodayDate() {
   const today = new Date();
@@ -1189,19 +1242,19 @@ function closeSettings() {
 document.getElementById("exportTasks").addEventListener("click", async () => {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/tasks`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch tasks');
     }
-    
+
     const tasks = await response.json();
-    
+
     if (tasks.length === 0) {
       alert("No tasks available to export.");
       return;
@@ -1241,7 +1294,7 @@ document.getElementById("importTasks").addEventListener("change", async (event) 
 
       csvData.forEach(row => {
         if (!row.trim()) return; // Skip empty rows
-        
+
         let columns = row.split(",");
 
         if (columns.length >= 9) { // Ensure the row has enough data
@@ -1260,7 +1313,7 @@ document.getElementById("importTasks").addEventListener("change", async (event) 
 
       try {
         const token = localStorage.getItem('token');
-        
+
         // Import each task to the backend
         for (const task of importedTasks) {
           await fetch(`${API_URL}/tasks`, {
@@ -1275,7 +1328,7 @@ document.getElementById("importTasks").addEventListener("change", async (event) 
 
         alert("Tasks imported successfully!");
         triggerNotification("✅ Tasks imported successfully!");
-        
+
         // Reload tasks from backend
         await loadFromBackend();
         renderTasks();
@@ -1302,7 +1355,7 @@ document.getElementById("importCategories").addEventListener("change", async (ev
 
       csvData.forEach(row => {
         if (!row.trim()) return; // Skip empty rows
-        
+
         let columns = row.split(",");
 
         if (columns.length >= 3) { // Ensure the row has enough data
@@ -1316,7 +1369,7 @@ document.getElementById("importCategories").addEventListener("change", async (ev
 
       try {
         const token = localStorage.getItem('token');
-        
+
         // Import each category to the backend
         for (const category of importedCategories) {
           await fetch(`${API_URL}/categories`, {
@@ -1331,7 +1384,7 @@ document.getElementById("importCategories").addEventListener("change", async (ev
 
         alert("Categories imported successfully!");
         triggerNotification("✅ Categories imported successfully!");
-        
+
         // Reload categories from backend
         await loadFromBackend();
         renderCategories();
@@ -1350,19 +1403,19 @@ document.getElementById("importCategories").addEventListener("change", async (ev
 document.getElementById("exportCategories").addEventListener("click", async () => {
   try {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${API_URL}/categories`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch categories');
     }
-    
+
     const categories = await response.json();
-    
+
     if (categories.length === 0) {
       alert("No categories to export.");
       return;

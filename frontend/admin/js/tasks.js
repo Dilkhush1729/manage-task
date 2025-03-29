@@ -114,15 +114,15 @@ function showNotification(message, type = 'success') {
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${year}-${month}-${day}`;
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options); // e.g., "March 28, 2025"
 }
 
 function formatTime(timeString) {
-  const [hours, minutes] = timeString.split(':');
-  return `${hours}:${minutes}`;
+  let [hours, minutes] = timeString.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  return `${hours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
 // Initialize tasks page
@@ -413,6 +413,18 @@ function updateBulkActions() {
     bulkActions.style.display = 'none';
   }
 }
+// Function to format date and time
+function formatDateTime(dateString) {
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  };
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', options);
+}
 
 // View task details
 async function viewTask(taskId) {
@@ -426,6 +438,9 @@ async function viewTask(taskId) {
     // Get task data
     const task = await apiRequest(`/admin/tasks/${taskId}`);
     
+    // Fetch categories
+    const categories = await apiRequest('/admin/categories'); // Fetch categories here
+
     // Find user and category
     const user = task.user || { name: 'N/A', email: 'N/A' };
     const category = task.category || { name: 'No Category', color: '#cccccc' };
@@ -466,7 +481,7 @@ async function viewTask(taskId) {
           
           <div class="task-info-item">
             <div class="info-label">Created</div>
-            <div class="info-value">${formatDate(task.createdAt)}</div>
+            <div class="info-value">${formatDateTime(task.createdAt)}</div>
           </div>
         </div>
         
@@ -475,6 +490,29 @@ async function viewTask(taskId) {
           <div class="task-description-content">
             ${task.description ? task.description.replace(/\n/g, '<br>') : 'No description provided.'}
           </div>
+        </div>
+        
+        <div class="task-category-history-section">
+          <div class="info-label">Category History</div>
+          <table class="task-category-history-table">
+            <thead>
+              <tr>
+                <th>Category Name</th>
+                <th>Changed At</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${task.categoryHistory.map(history => {
+                const category = categories.find(cat => cat._id === history.categoryId);
+                return `
+                  <tr>
+                    <td>${category ? category.name : 'Unknown Category'}</td>
+                    <td>${formatDateTime(history.changedAt)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
         </div>
       </div>
     `;
@@ -1004,7 +1042,12 @@ style.textContent = `
     margin-bottom: 0.5rem;
     font-weight: 500;
   }
-  
+  .task-category-history-section .info-label{
+    padding-top: 20px;
+  }
+  .task-category-history-content{
+    line-height: 30px;
+  }
   .info-value {
     font-size: 1rem;
   }
