@@ -498,7 +498,7 @@ async function viewTask(taskId) {
             <thead>
               <tr>
                 <th>Category Name</th>
-                <th>Changed At</th>
+                <th>Updated At</th>
               </tr>
             </thead>
             <tbody>
@@ -573,10 +573,35 @@ async function openEditTaskModal(taskId = null) {
       const day = String(today.getDate()).padStart(2, '0');
       editTaskDueDate.value = `${year}-${month}-${day}`;
     }
+    // Add the event listener for user selection
+    editTaskUser .addEventListener('change', async () => {
+      const userId = editTaskUser .value;
+      if (userId) {
+        await loadCategoriesForUser (userId);
+      } else {
+        // Reset categories dropdown if no user is selected
+        editTaskCategory.innerHTML = '<option value="">No Category</option>';
+      }
+    });
+
   } catch (error) {
     console.error('Error loading task for edit:', error);
     showNotification('Failed to load task data', 'error');
     editTaskModal.classList.remove('show');
+  }
+}
+async function loadCategoriesForUser (userId) {
+  try {
+    const categories = await apiRequest(`/admin/categories/user/${userId}`); // Call the new endpoint
+    let categoryOptions = '<option value="">Select Category</option>';
+    categories.forEach(category => {
+      categoryOptions += `<option value="${category._id}">${category.name}</option>`;
+    });
+    editTaskCategory.innerHTML = categoryOptions;
+  } catch (error) {
+    console.error('Error loading categories for user:', error);
+    showNotification('Failed to load categories for the selected user', 'error');
+    editTaskCategory.innerHTML = '<option value="">No Category</option>'; // Reset on error
   }
 }
 

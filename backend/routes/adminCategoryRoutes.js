@@ -268,4 +268,18 @@ router.post('/import/csv', async (req, res) => {
   }
 });
 
+// Get categories by user ID
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const categories = await Category.find({ user: req.params.userId })
+      .sort({ name: 1 });
+    
+    res.json(categories);
+  } catch (error) {
+    console.error('Error fetching categories for user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 module.exports = router;

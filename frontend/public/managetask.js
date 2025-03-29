@@ -1031,7 +1031,7 @@ function openTaskDetailsModal(taskId) {
             <thead>
                 <tr style="text-align: left;">
                     <th style="padding: 8px; border: 1px solid #ccc; background-color: #f2f2f2; border-radius: 8px 8px 0 0;">Previous Category</th>
-                    <th style="padding: 8px; border: 1px solid #ccc; background-color: #f2f2f2; border-radius: 8px 8px 0 0;">Changed At</th>
+                    <th style="padding: 8px; border: 1px solid #ccc; background-color: #f2f2f2; border-radius: 8px 8px 0 0;">Updated At</th>
                 </tr>
             </thead>
             <tbody>
