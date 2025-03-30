@@ -35,6 +35,9 @@ const taskContentContainer = document.getElementById('calendar-grid');
 const enableCalendarView = document.getElementById('calendar-view-enable');
 const userAvatar = document.querySelector('.user-avatar');
 const logoutButton = document.getElementById('logout-button');
+const calendarDiv = document.getElementById('calendar-div')
+const calendarModal = document.getElementById('calendar-modal')
+calendarDiv.style.visibility = 'hidden';
 deleteConfirmationModal.style.display = "none";
 
 // API Base URL - Change this to your backend URL
@@ -49,8 +52,8 @@ let currentTaskId = null;
 let currentCategoryId = null;
 let isGridView = true;
 let isListView = false;
-let isCalendarView = false;
 let previousCategories = [];
+
 // Authentication Check
 function checkAuth() {
   const token = localStorage.getItem('token');
@@ -85,6 +88,21 @@ function logout() {
 
 // Initialize
 async function init() {
+
+  // Load saved view from localStorage
+  const savedView = localStorage.getItem('currentView');
+  let currentViewTitle = localStorage.getItem('currentViewTitle');
+  if (savedView) {
+    currentView = savedView;
+    document.getElementById('current-view-title').textContent = currentViewTitle;
+    const initialActiveClass = document.querySelector(`[data-view="${savedView}"]`);
+    if (initialActiveClass) {
+      initialActiveClass.classList.add('active');
+    }
+  } else {
+    currentView = 'all';
+    document.getElementById('current-view-title').textContent = 'All Tasks'
+  }
   // Check if user is authenticated
   if (!checkAuth()) return;
 
@@ -163,9 +181,12 @@ function setupEventListeners() {
   viewButtons.forEach(button => {
     button.addEventListener('click', () => {
       viewButtons.forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
       button.classList.add('active');
       currentView = button.dataset.view;
       currentViewTitle.textContent = button.querySelector('span').textContent;
+      localStorage.setItem('currentView', currentView);
+      localStorage.setItem('currentViewTitle', button.querySelector('span').textContent);
       renderTasks();
     });
   });
@@ -174,12 +195,10 @@ function setupEventListeners() {
   gridViewButton.addEventListener('click', () => {
     isGridView = true;
     isListView = false;
-    isCalendarView = false;
     gridViewButton.classList.add('active');
     listViewButton.classList.remove('active');
     taskContainer.classList.remove('list-view');
     taskContainer.classList.remove('grid-view');
-    enableCalendarView.classList.remove('active');
     localStorage.setItem('viewMode', 'grid');
     window.location.reload();
   });
@@ -187,10 +206,8 @@ function setupEventListeners() {
   listViewButton.addEventListener('click', () => {
     isListView = true;
     isGridView = false;
-    isCalendarView = false;
     listViewButton.classList.add('active');
     gridViewButton.classList.remove('active');
-    enableCalendarView.classList.remove('active');
     taskContainer.classList.add('list-view');
     localStorage.setItem('viewMode', 'list');
     window.location.reload();
@@ -198,13 +215,7 @@ function setupEventListeners() {
 
   enableCalendarView.addEventListener('click', (e) => {
     e.preventDefault();
-    isGridView = false;
-    isListView = false;
-    isCalendarView = true;
-    enableCalendarView.classList.add('active');
-    listViewButton.classList.remove('active');
-    gridViewButton.classList.remove('active');
-    localStorage.setItem('viewMode', 'calendar');
+    calendarDiv.style.visibility = 'visible';
     openCalendar();
   });
 
@@ -278,7 +289,6 @@ async function loadFromBackend() {
     const viewMode = localStorage.getItem('viewMode');
     if (viewMode === 'list') {
       isGridView = false;
-      isCalendarView = false;
       listViewButton.classList.add('active');
       gridViewButton.classList.remove('active');
       taskContainer.classList.add('list-view');
@@ -331,8 +341,6 @@ async function addTask(task) {
 }
 
 async function updateTask(id, updatedTask) {
-  console.log('test updated task ',updatedTask)
-  console.log('test updated task id ',id)
 
   try {
     const token = localStorage.getItem('token');
@@ -793,6 +801,7 @@ function renderCategories() {
       currentViewTitle.textContent = category.name;
       renderTasks();
       localStorage.setItem('currentView', currentView);
+      localStorage.setItem('currentViewTitle', category.name);
     });
 
     // Add event listener for category deletion
@@ -982,6 +991,7 @@ function openTaskDetailsModal(taskId) {
 
   const taskDetailsTitle = document.getElementById('task-details-title');
   const taskDetailsDate = document.getElementById('task-details-date');
+  const taskCreatedDate = document.getElementById('task-created-date');
   const taskDetailsCategory = document.getElementById('task-details-category');
   const newcategoryHistory = document.getElementById('category-history-8');
   const taskDetailsPriority = document.getElementById('task-details-priority');
@@ -989,6 +999,12 @@ function openTaskDetailsModal(taskId) {
   const completeTaskButton = document.getElementById('complete-task-button');
 
   taskDetailsTitle.textContent = task.name;
+
+  if (task.createdAt) {
+    taskCreatedDate.textContent = `Created At : ${formatDateTime(task.createdAt)}`;
+  } else {
+    taskCreatedDate.textContent = 'Created At : Not Available';
+  }
 
   // Format date
   if (task.dueDate) {
@@ -1078,7 +1094,7 @@ async function handleTaskSubmit(e) {
   const dueTime = document.getElementById('due-time').value;
   const category = document.getElementById('task-category').value;
   const priority = document.getElementById('task-priority').value;
-  
+
   const taskData = {
     name,
     description,
@@ -1133,11 +1149,6 @@ async function handleCategoryDelete() {
     closeCategoriesModal();
   }
 }
-
-// Utility Functions
-// function generateId() {
-//   return Date.now().toString(36) + Math.random().toString(36).substr(2);
-// }
 
 function getTodayDate() {
   const today = new Date();
@@ -1463,9 +1474,10 @@ function triggerNotification(message) {
 
 // Calendar view code
 function openCalendar() {
-  taskContainer.innerHTML = '';
-  taskContainer.style.background = 'rgba(255, 255, 255, 0.2);';
-  taskContainer.innerHTML =
+  calendarDiv.style.display = 'block'
+  calendarModal.innerHTML = '';
+  calendarModal.style.background = 'rgba(255, 255, 255, 0.2);';
+  calendarModal.innerHTML =
     `<div class="calendar-module-container">
         <!-- Calendar View -->
         <div class="calendar-view">
@@ -1487,13 +1499,17 @@ function openCalendar() {
             </div>
             <h2 class="current-date" id="currentDate">March 15</h2>
             </div>
-
-            <div class="view-selector">
-            <button class="view-button" data-view="day">Day</button>
-            <button class="view-button active" data-view="week">Week</button>
-            <button class="view-button" data-view="month">Month</button>
+            <div class="calendar-button-module" style="display:flex; gap: 35px;">
+              <div class="view-selector">
+                  <button class="view-button" data-view="day">Day</button>
+                  <button class="view-button active" data-view="week">Week</button>
+                  <button class="view-button" data-view="month">Month</button>
+                </div>
+                <div>
+                  <button class="today-button" id="close-calendar">Close</button>
+                </div>
+              </div>
             </div>
-        </div>
 
         <!-- Week View -->
         <div class="calendar-container">
@@ -1527,6 +1543,11 @@ function openCalendar() {
   </div>
 </div>
 </div>`;
+
+  const closeCalendar = document.getElementById('close-calendar')
+  closeCalendar.addEventListener('click', (e) => {
+    calendarDiv.style.visibility = 'hidden';
+  });
 
   // Initialize variables
   let currentView = 'week';

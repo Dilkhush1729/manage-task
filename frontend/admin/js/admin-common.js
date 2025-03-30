@@ -166,7 +166,7 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     // Handle unauthorized
     if (response.status === 401) {
       logout();
-      throw new Error('Session expired. Please login again.');
+      // throw new Error('Session expired. Please login again.');
     }
 
     // Parse JSON response

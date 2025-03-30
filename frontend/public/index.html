@@ -65,7 +65,7 @@
                 <div class="sidebar-section">
                     <h3 class="sidebar-title">Views</h3>
                     <ul class="sidebar-list">
-                        <li class="sidebar-item active" data-view="all">
+                        <li class="sidebar-item" data-view="all">
                             <i class="fas fa-tasks"></i>
                             <span>All Tasks</span>
                             <span class="task-count" id="all-count">0</span>
@@ -105,7 +105,7 @@
             <!-- Task Content -->
             <div class="task-content" id="calendar-grid">
                 <div class="task-header">
-                    <h2 id="current-view-title">All Tasks</h2>
+                    <h2 id="current-view-title"></h2>
                     <div class="task-actions">
                         <div class="dropdown">
                             <button class="dropdown-button">
@@ -251,6 +251,10 @@
                     <div class="task-details-info">
                         <div class="task-details-row">
                             <i class="fas fa-calendar"></i>
+                            <span id="task-created-date">No due date</span>
+                        </div>
+                        <div class="task-details-row">
+                            <i class="fas fa-calendar"></i>
                             <span id="task-details-date">No due date</span>
                         </div>
                         <div class="task-details-row">
@@ -270,9 +274,9 @@
                 <div id="category-history">
                     <p style="padding: 5px 0px 9px 0px; font-weight: bolder;">Category History</p>
                     <div class="category-list" id="category-history-8">
-                      <!-- History items will be injected here -->
+                        <!-- History items will be injected here -->
                     </div>
-                  </div>
+                </div>
             </div>
         </div>
         <div class="task-details-actions">
@@ -375,10 +379,17 @@
             <button id="cancel-btn">Cancel</button>
         </div>
     </div>
+    
+    <!-- Calendar Modal  -->
+    <div id="calendar-div"style="display:none;" >
+        <div id="calendar-modal">
+
+        </div>
+    </div>
 
     <script>
         // Check if user is logged in before loading main script
-        (function() {
+        (function () {
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = 'main.html';
