@@ -295,8 +295,8 @@ router.get('/export/csv', async (req, res) => {
         task.category ? task.category.color : '',
         task.priority,
         task.completed,
-        `"${task.user.name}"`,
-        task.user.email,
+        task.user && task.user.name ? `"${task.user.name}"` : '', // Check if task.user.name exists
+        task.user && task.user.email ? task.user.email : '', // Check if task.user.email exists
         task.createdAt
       ];
       

@@ -188,8 +188,8 @@ router.get('/export/csv', async (req, res) => {
         category._id,
         `"${category.name.replace(/"/g, '""')}"`,
         category.color,
-        `"${category.user.name}"`,
-        category.user.email,
+        category.user ? `"${category.user.name}"` : '', // Check if category.user exists
+        category.user ? category.user.email : '', // Check if category.user exists
         category.createdAt
       ];
       

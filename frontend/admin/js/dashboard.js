@@ -229,7 +229,7 @@ async function loadRecentUsers() {
         <td>${user.email}</td>
         <td>${user.stats.totalTasks} (${user.stats.completedTasks} completed)</td>
         <td>${formatDate(user.createdAt)}</td>
-        <td>
+        <td style="display:none;">
           <a href="user-details.html?id=${user._id}" class="btn btn-sm btn-primary">
             <i class="fas fa-eye"></i>
           </a>

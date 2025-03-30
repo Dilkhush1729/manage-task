@@ -864,6 +864,59 @@ async function importCategoriesFromCSV() {
   }
 }
 
+// Helper function for API calls
+async function apiRequest(endpoint, method = 'GET', data = null) {
+  try {
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const options = {
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+
+    // Handle unauthorized
+    if (response.status === 401) {
+      logout();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    // Check the content type of the response
+    const contentType = response.headers.get('Content-Type');
+
+    if (contentType && contentType.includes('text/csv')) {
+      // If the response is CSV, return it as text
+      return await response.text();
+    } else {
+      // Otherwise, parse it as JSON
+      const result = await response.json();
+
+      // Handle error response
+      if (!response.ok) {
+        throw new Error(result.message || 'API request failed');
+      }
+
+      return result;
+    }
+  } catch (error) {
+    console.error('API request error:', error);
+    showNotification(error.message, 'error');
+    throw error;
+  }
+}
+
 // Export categories to CSV
 async function exportCategoriesToCSV() {
   try {
@@ -871,11 +924,14 @@ async function exportCategoriesToCSV() {
     const userId = userFilter.value;
     const url = `/admin/categories/export/csv${userId ? `?userId=${userId}` : ''}`;
 
-    // Create a link and trigger download
+    // Use apiRequest to fetch the CSV data
+    const csvData = await apiRequest(url, 'GET');
+
+    // Create a Blob from the CSV data
+    const blob = new Blob([csvData], { type: 'text/csv' });
     const a = document.createElement('a');
-    a.href = `${API_URL}${url}`;
+    a.href = URL.createObjectURL(blob);
     a.download = 'categories.csv';
-    a.target = '_blank';
     a.click();
   } catch (error) {
     console.error('Error exporting categories:', error);

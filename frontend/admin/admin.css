@@ -523,7 +523,7 @@ body {
 }
 
 .table-header {
-    /* display: flex; */
+    display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem;
@@ -541,7 +541,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 1.5rem;
 }
 
 .table-action {
@@ -576,6 +576,9 @@ body {
 .admin-table {
     width: 100%;
     border-collapse: collapse;
+}
+.admin-table thead{
+    text-align: center;
 }
 
 .admin-table th,

@@ -93,7 +93,15 @@ async function apiRequest(url, method = 'GET', data = null) {
       throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
     }
 
-    return await response.json();
+    // Check the content type of the response
+    const contentType = response.headers.get('Content-Type');
+    if (contentType && contentType.includes('text/csv')) {
+      // If the response is CSV, return it as text
+      return await response.text();
+    } else {
+      // Otherwise, parse it as JSON
+      return await response.json();
+    }
   } catch (error) {
     console.error('API request error:', error);
     throw error;
@@ -189,7 +197,6 @@ async function loadCategories() {
 
 // Load tasks
 async function loadTasks(page = 1, filters = {}) {
-  // debugger
   try {
     // Show loading
     tasksTable.innerHTML = '<tr><td colspan="7" class="text-center">Loading tasks...</td></tr>';
@@ -782,15 +789,17 @@ async function importTasksFromCSV() {
 // Export tasks to CSV
 async function exportTasksToCSV() {
   try {
-    // Get export URL
     const userId = userFilter.value;
     const url = `/admin/tasks/export/csv${userId ? `?userId=${userId}` : ''}`;
     
-    // Create a link and trigger download
+    // Use apiRequest to fetch the CSV data
+    const csvData = await apiRequest(url, 'GET');
+
+    // Create a Blob from the CSV data
+    const blob = new Blob([csvData], { type: 'text/csv' });
     const a = document.createElement('a');
-    a.href = `${API_URL}${url}`;
+    a.href = URL.createObjectURL(blob);
     a.download = 'tasks.csv';
-    a.target = '_blank';
     a.click();
   } catch (error) {
     console.error('Error exporting tasks:', error);
