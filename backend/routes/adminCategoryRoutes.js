@@ -207,7 +207,6 @@ router.get('/export/csv', async (req, res) => {
   }
 });
 
-// Import categories
 router.post('/import/csv', async (req, res) => {
   try {
     const { csvData, userId } = req.body;
@@ -225,21 +224,27 @@ router.post('/import/csv', async (req, res) => {
     }
     
     // Parse CSV data (skip header row)
-    const rows = csvData.split('\n').slice(1);
+    const rows = csvData.split('\n').map(row => row.trim()).filter(row => row); // Trim and filter empty rows
     const importedCategories = [];
     const errors = [];
-    
-    for (let i = 0; i < rows.length; i++) {
-      if (!rows[i].trim()) continue; // Skip empty rows
-      
+
+    // Validate header
+    const header = rows[0].split(',').map(col => col.trim());
+    console.log('Parsed Header:', header); // Log the parsed header for debugging
+
+    if (header.length < 2 || header[0] !== 'Name' || header[1] !== 'Color') {
+      return res.status(400).json({ message: 'Invalid CSV header format. Expected: Name,Color' });
+    }
+
+    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
       try {
         // Parse CSV row (handle quoted fields with commas)
         const row = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        
-        if (row && row.length >= 3) {
-          const name = row[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-          const color = row[2].trim();
-          
+
+        if (row && row.length >= 2) {
+          const name = row[0].replace(/^"|"$/g, '').replace(/""/g, '"');
+          const color = row[1].trim();
+
           // Create category
           const category = new Category({
             name,

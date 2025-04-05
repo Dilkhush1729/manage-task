@@ -41,7 +41,9 @@ calendarDiv.style.visibility = 'hidden';
 deleteConfirmationModal.style.display = "none";
 
 // API Base URL - Change this to your backend URL
-let API_URL = 'http://localhost:5000/api';
+// let API_URL = 'http://localhost:5000/api';
+
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
 // State
 let tasks = [];
@@ -304,6 +306,14 @@ async function loadFromBackend() {
     triggerNotification('Failed to load data from server. Please check your connection.');
   }
 }
+// loader 
+const loader = document.getElementById('bar_loader');
+function showLoader(){
+  loader.style.visibility = 'visible';
+  setTimeout(() => {
+    loader.style.visibility = 'hidden';
+  }, 4000);
+}
 
 
 // Task Operations
@@ -324,6 +334,7 @@ async function addTask(task) {
     if (response.ok) {
       const newTask = await response.json();
       tasks.push(newTask);
+      showLoader();
       triggerNotification("🎉 Task saved successfully! One step closer to achieving your goals! 🚀");
       renderTasks();
       updateCounts();
@@ -360,6 +371,7 @@ async function updateTask(id, updatedTask) {
       if (index !== -1) {
         tasks[index] = updated;
       }
+      showLoader();
       triggerNotification("🔄 Task updated successfully! Keep up the momentum! 🚀");
       renderTasks();
       updateCounts();
@@ -819,6 +831,7 @@ function renderCategories() {
         e.preventDefault();
         deleteConfirmationModal.style.display = "none";
         deleteCategory(category._id);
+        showLoader();
       })
     });
   });
@@ -1686,13 +1699,25 @@ function openCalendar() {
     return taskElement;
   }
 
-  // Function to format time as AM/PM
   function formatTime1(time) {
-    const [hour, minute] = time.split(':').map(Number);
+    if (!time || typeof time !== 'string' || !time.includes(':')) {
+      return ''; // or return 'Invalid Time'
+    }
+  
+    const [hourStr, minuteStr] = time.split(':');
+    const hour = Number(hourStr);
+    const minute = Number(minuteStr);
+  
+    if (isNaN(hour) || isNaN(minute)) {
+      return ''; // or return 'Invalid Time'
+    }
+  
     const period = hour < 12 ? 'AM' : 'PM';
     const formattedHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  
     return `${formattedHour}:${minute.toString().padStart(2, '0')} ${period}`;
   }
+  
 
   // Show task details
   function showTaskDetails(task) {

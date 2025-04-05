@@ -213,8 +213,8 @@ async function loadTasks(page = 1, filters = {}) {
     // Apply filters
     filteredTasks = tasks.filter(task => {
       // Search filter
-      if (filters.search && !task.name.toLowerCase().includes(filters.search.toLowerCase()) && 
-          !(task.description && task.description.toLowerCase().includes(filters.search.toLowerCase()))) {
+      if (filters.search && !task.name.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !(task.description && task.description.toLowerCase().includes(filters.search.toLowerCase()))) {
         return false;
       }
 
@@ -842,10 +842,10 @@ function exportTasksToJSON() {
 
 // Download CSV template
 function downloadCSVTemplate() {
-  const template = `Name,Description,Due Date,Due Time,Priority,Status
-Task 1,Description for task 1,2023-12-31,14:00,high,false
-Task 2,Description for task 2,2023-12-31,15:00,medium,true`;
-  
+  const template = `Name,Description,Due Date,Due Time,Category Id,Priority,Completed
+  "Task 1","Description for task 1","2023-12-31","14:00","67db1805653a686047418c91","high","false"
+  "Task 2","Description for task 2","2023-12-31","15:00","67db1805653a686047418c91","medium","true"`;
+
   const blob = new Blob([template], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   
@@ -1102,7 +1102,6 @@ style.textContent = `
   
   .task-description-content {
     margin-top: 0.5rem;
-    white-space: pre-line;
   }
   
   .task-name-cell {

@@ -327,7 +327,7 @@ router.post('/import/csv', async (req, res) => {
     if (userId) {
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User  not found' });
       }
     }
     
@@ -342,22 +342,26 @@ router.post('/import/csv', async (req, res) => {
       try {
         // Parse CSV row (handle quoted fields with commas)
         const row = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-        
-        if (row && row.length >= 8) {
-          const name = row[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-          const description = row[2].replace(/^"|"$/g, '').replace(/""/g, '"');
-          const dueDate = row[3].trim();
-          const dueTime = row[4].trim();
-          const categoryName = row[5].replace(/^"|"$/g, '').replace(/""/g, '"');
-          const priority = row[7].trim().toLowerCase();
-          const completed = row[8].trim().toLowerCase() === 'true';
-          
+
+        if (row && row.length >= 6) { // Expecting 6 fields
+          const name = row[0].replace(/^"|"$/g, '').replace(/""/g, '"');
+          const description = row[1].replace(/^"|"$/g, '').replace(/""/g, '"');
+          const dueDate = row[2].trim();
+          const dueTime = row[3].trim();
+          const categoryId = row[4].replace(/^"|"$/g, '').replace(/""/g, '').trim(); // Trim whitespace
+          const priority = row[5].trim().toLowerCase();
+          const completed = row[6] ? row[6].trim().toLowerCase() === 'true' : false; // Adjusted to check for completed
+
+          // Log the category ID being checked
+          console.log(`Checking category ID: "${categoryId}"`);
+
           // Create task
           const task = new Task({
             name,
             description,
             dueDate: dueDate || null,
             dueTime: dueTime || null,
+            category: categoryId ? categoryId : null, // Use the ObjectId of the found category or null
             priority: ['low', 'medium', 'high'].includes(priority) ? priority : 'medium',
             completed,
             user: userId
