@@ -8,13 +8,11 @@ const mobileMenuClose = document.getElementById('mobile-menu-close');
 // Modal Elements
 const signupBtn = document.getElementById('login-signup-btn');
 const adminLoginBtn = document.getElementById('admin-login-btn');
-const mobileLoginBtn = document.getElementById('mobile-login-btn');
 const mobileSignupBtn = document.getElementById('mobile-signup-btn');
 const mobileAdminLoginBtn = document.getElementById('mobile-admin-login-btn');
 const heroSignupBtn = document.getElementById('hero-signup-btn');
 const ctaSignupBtn = document.getElementById('cta-signup-btn');
 
-const loginModal = document.getElementById('login-modal');
 const signupModal = document.getElementById('signup-modal');
 const adminLoginModal = document.getElementById('admin-login-modal');
 
@@ -53,13 +51,6 @@ function openModal(modal) {
 function closeModal(modal) {
     modal.classList.remove('show');
 }
-
-
-mobileLoginBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    mobileMenu.classList.remove('show');
-    openModal(loginModal);
-});
 
 // Signup Modal
 signupBtn.addEventListener('click', (e) => {

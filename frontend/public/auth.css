@@ -282,7 +282,7 @@
       grid-template-columns: 1fr;
     }
   
-    .auth-side-content {
+    .auth-side-content,.auth-subtitle {
       display: none;
     }
   
@@ -290,6 +290,23 @@
     .auth-card::after {
       width: 50%;
     }
+
+    .auth-form-content{
+      width: 100%;
+    }
+    .auth-title{
+      font-size: 1.5rem;
+    }
+    .auth-button,.auth-header{
+      margin-bottom: 0px;
+    }
+    .terms-checkbox label{
+      margin-bottom: -1.7rem;
+    }
+    .auth-form-content{
+      padding: 45px;
+    }
+    
   }
   
   

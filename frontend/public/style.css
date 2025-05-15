@@ -951,41 +951,6 @@ textarea {
     z-index: 999;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        z-index: 100;
-        /* transform: translateX(-100%); */
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-    .form-row {
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .task-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .modal {
-        width: 90%;
-    }
-
-    .settings-offcanvas {
-        width: 100% !important;
-        right: 100% !important;
-    }
-
-    .settings-offcanvas.active {
-        right: 0 !important;
-    }
-}
-
 /* Empty State */
 .empty-state {
     display: flex;
@@ -1918,5 +1883,45 @@ textarea {
     50% {
         height: 100%;
         /* Full height at the peak */
+    }
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        z-index: 100;
+        /* transform: translateX(-100%); */
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .task-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        width: 90%;
+    }
+
+    .settings-offcanvas {
+        width: 100% !important;
+        right: 100% !important;
+    }
+
+    .settings-offcanvas.active {
+        right: 0 !important;
+    }
+
+    .class_calendar,#list-view-button, #grid-view-button{
+        display: none;
     }
 }
