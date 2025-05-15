@@ -713,7 +713,7 @@ input:checked+.slider:before {
 
 .modal-body {
     max-height: 520px;
-    padding: 1.25rem;
+    padding: 1.25rem 1.25rem 1rem 1.25rem;
     overflow-y: auto;
 }
 
@@ -771,7 +771,8 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1.5rem;
+    padding: 0px 17px 17px 17px;
+    /* margin-top: 1.5rem; */
 }
 
 .save-button {
@@ -898,6 +899,7 @@ textarea {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 11;
 }
 
 #shared-content {
@@ -1177,11 +1179,10 @@ textarea {
 
 #notification-container {
     position: fixed;
-    top: 1.5%;
-    right: 40%;
+    bottom: 20px;
     max-height: 400px;
     overflow-y: auto;
-    z-index: 100;
+    z-index: 900;
 }
 
 .notification {
@@ -1211,6 +1212,7 @@ textarea {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 12;
 }
 
 .delete-modal-content {
@@ -1821,7 +1823,7 @@ textarea {
     background-color: rgba(239, 68, 68, 0.2);
 }
 
-/* loader  */
+/* show loader  */
 #bar_loader {
     position: fixed;
     top: 0;
@@ -1835,62 +1837,70 @@ textarea {
     z-index: 120;
 }
 
-.graph-loader {
-    display: flex;
-    align-items: flex-end;
-    /* Align bars to the bottom */
-    justify-content: space-between;
-    /* Space bars evenly */
-    width: 120px;
-    /* Total width of the loader */
-    height: 50px;
-    /* Maximum height for bars */
-    gap: 5px;
-    /* Spacing between bars */
+.grid-loader {
+    display: grid;
+    grid-template-columns: repeat(3, 20px);
+    grid-gap: 6px;
+    width: max-content;
 }
 
-.bar {
-    width: 15px;
-    /* Width of each bar */
-    background-color: #007bff;
-    /* Bar color */
-    animation: rise-fall 1.2s ease-in-out infinite;
+.grid-loader div {
+    width: 20px;
+    height: 20px;
+    background-color: var(--primary);
+    opacity: 0.3;
+    animation: fadeGrid 1.2s infinite ease-in-out;
 }
 
-.bar1 {
+.grid-loader div:nth-child(1) {
     animation-delay: 0s;
 }
 
-.bar2 {
+.grid-loader div:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.grid-loader div:nth-child(3) {
     animation-delay: 0.2s;
 }
 
-.bar3 {
+.grid-loader div:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.grid-loader div:nth-child(5) {
     animation-delay: 0.4s;
 }
 
-.bar4 {
+.grid-loader div:nth-child(6) {
+    animation-delay: 0.5s;
+}
+
+.grid-loader div:nth-child(7) {
     animation-delay: 0.6s;
 }
 
-.bar5 {
+.grid-loader div:nth-child(8) {
+    animation-delay: 0.7s;
+}
+
+.grid-loader div:nth-child(9) {
     animation-delay: 0.8s;
 }
 
-@keyframes rise-fall {
+@keyframes fadeGrid {
 
     0%,
     100% {
-        height: 10%;
-        /* Smallest bar height */
+        opacity: 0.3;
     }
 
     50% {
-        height: 100%;
-        /* Full height at the peak */
+        opacity: 1;
     }
 }
 
+/* End show loader  */
 
 /* Responsive */
 @media (max-width: 768px) {

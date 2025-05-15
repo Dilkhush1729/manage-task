@@ -201,12 +201,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" id="delete-task" class="delete-button">Delete</button>
-                        <button type="submit" id="save-task" class="save-button">Save Task</button>
-                    </div>
+
                 </form>
             </div>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="delete-task" class="delete-button">Delete</button>
+            <button id="save-task-button" class="save-button">Save Task</button>
         </div>
     </div>
 
@@ -402,22 +403,27 @@
     </div>
     
     <!-- Calendar Modal  -->
-    <div id="calendar-div"style="display:none;" >
+    <div id="calendar-div" style="display:none;">
         <div id="calendar-modal">
 
         </div>
     </div>
 
     <!-- fghjhgf -->
-    
+
     <div class="loader-background" id="bar_loader" style="visibility: hidden;">
-        <div class="graph-loader">
-            <div class="bar bar1"></div>
-            <div class="bar bar2"></div>
-            <div class="bar bar3"></div>
-            <div class="bar bar4"></div>
-            <div class="bar bar5"></div>
+        <div class="grid-loader">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
         </div>
+
     </div>
       
 
@@ -443,16 +449,16 @@
                     if (username) username.textContent = user.name;
                     if (userEmail) userEmail.textContent = user.email;
                 }
-                
+
                 // Setup logout buttons
-                document.getElementById('logout-button').addEventListener('click', function() {
+                document.getElementById('logout-button').addEventListener('click', function () {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     window.location.href = 'main.html';
                 });
-                
+
                 if (document.getElementById('settings-logout-button')) {
-                    document.getElementById('settings-logout-button').addEventListener('click', function() {
+                    document.getElementById('settings-logout-button').addEventListener('click', function () {
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
                         window.location.href = 'main.html';
@@ -462,7 +468,7 @@
         })();
     </script>
 
-    <script type="module"  src="./managetask.js"></script>
+    <script type="module" src="./managetask.js"></script>
 </body>
 
 </html>

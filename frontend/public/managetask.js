@@ -39,6 +39,7 @@ const calendarDiv = document.getElementById('calendar-div')
 const calendarModal = document.getElementById('calendar-modal')
 calendarDiv.style.visibility = 'hidden';
 deleteConfirmationModal.style.display = "none";
+const saveTasksBtn = document.getElementById('save-task-button');
 
 // API Base URL - Change this to your backend URL
 // let SHARED_API_URL = 'http://localhost:5000/api';
@@ -163,6 +164,14 @@ async function init() {
   checkTheme();
 }
 
+if (window.innerWidth < 768 && sidebar) {
+  sidebar.classList.add('collapsed');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  showLoader();
+});
+
 // Event Listeners
 function setupEventListeners() {
   // Logout button
@@ -173,6 +182,25 @@ function setupEventListeners() {
   // Menu Toggle
   menuToggle.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
+  });
+
+  // Close sidebar on outside click — only if screen is < 768px
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768) {
+      const isClickInsideSidebar = sidebar.contains(e.target);
+      const isClickOnToggle = menuToggle.contains(e.target);
+
+      if (!isClickInsideSidebar && !isClickOnToggle) {
+        sidebar.classList.add('collapsed');
+      }
+    }
+  });
+
+  // Optional: Handle window resize to close sidebar if needed
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove('collapsed'); // Keep sidebar open on larger screens
+    }
   });
 
   // Create Task
@@ -196,7 +224,7 @@ function setupEventListeners() {
   });
 
   // Form Submissions
-  taskForm.addEventListener('submit', handleTaskSubmit);
+  saveTasksBtn.addEventListener('click', handleTaskSubmit);
   categoryForm.addEventListener('submit', handleCategorySubmit);
 
   // Delete Buttons
@@ -233,6 +261,11 @@ function setupEventListeners() {
       currentViewTitle.textContent = button.querySelector('span').textContent;
       localStorage.setItem('currentView', currentView);
       localStorage.setItem('currentViewTitle', button.querySelector('span').textContent);
+
+      if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('collapsed');
+      }
+
       renderTasks();
     });
   });
@@ -360,7 +393,7 @@ function showLoader() {
   loader.style.visibility = 'visible';
   setTimeout(() => {
     loader.style.visibility = 'hidden';
-  }, 4000);
+  }, 6050);
 }
 
 
@@ -448,6 +481,7 @@ async function deleteTask(id) {
 
     if (response.ok) {
       tasks = tasks.filter(task => task._id !== id);
+      showLoader();
       triggerNotification("✅ Task deleted successfully! Stay focused on what matters! 🚀");
       renderTasks();
       updateCounts();
@@ -521,6 +555,7 @@ async function addCategory(category) {
     if (response.ok) {
       const newCategory = await response.json();
       categories.push(newCategory);
+      showLoader();
       triggerNotification("✅ Category has been added successfully!");
       renderCategories();
       return newCategory;
@@ -555,6 +590,7 @@ async function updateCategory(id, updatedCategory) {
       if (index !== -1) {
         categories[index] = updated;
       }
+      showLoader();
       triggerNotification("🔄 Category updated successfully! Keep everything organized! 📂");
       renderCategories();
       renderTasks(); // Re-render tasks to update category colors
@@ -584,7 +620,7 @@ async function deleteCategory(id) {
     if (response.ok) {
       categories = categories.filter(category => category._id !== id);
       // The backend will handle updating tasks that use this category
-
+      showLoader();
       triggerNotification("🎯 Category deleted successfully! Time for a fresh start! 🚀");
       renderCategories();
 
@@ -623,6 +659,7 @@ function renderTasks() {
   if (currentView === 'today') {
     const today = getTodayDate();
     filteredTasks = filteredTasks.filter(task => task.dueDate === today);
+
   } else if (currentView === 'upcoming') {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -700,8 +737,8 @@ function renderTasks() {
           </div>
           ` : ''}
           ${task.sharedWith && task.sharedWith.length > 0 ?
-            `<span class="shared-task-badge">Shared (${task.sharedWith.length})</span>` :
-            ''}
+          `<span class="shared-task-badge">Shared (${task.sharedWith.length})</span>` :
+          ''}
           <div class="task-priority">
             <span class="priority-indicator priority-${task.priority}"></span>
             <span>${capitalizeFirstLetter(task.priority)}</span>
@@ -782,8 +819,10 @@ function renderTasks() {
           }
 
           if (updatedTask.completed) {
+            showLoader();
             triggerNotification("🎉 Congratulations! You have completed your task.");
           } else {
+            showLoader();
             triggerNotification("😔 Oops! You have undone your task.");
           }
         } else if (response.status === 401) {
@@ -1182,7 +1221,7 @@ function openShareModal(taskId) {
   if (existingModal) {
     existingModal.remove();
   }
-  
+
   const shareModal = document.createElement('div');
   shareModal.className = 'shared-modal';
   shareModal.innerHTML = `
@@ -1216,13 +1255,13 @@ function openShareModal(taskId) {
   document.getElementById('overlay').style.display = 'block';
 
   // Close modal handler
-  function closeShareModal(){
+  function closeShareModal() {
     console.log('i am clicked ...')
     document.body.removeChild(shareModal);
     document.getElementById('overlay').style.display = 'none';
   };
 
-  document.getElementById('close-share-modal').addEventListener('click', ()=>{
+  document.getElementById('close-share-modal').addEventListener('click', () => {
     closeShareModal();
   });
 
@@ -1260,6 +1299,7 @@ function openShareModal(taskId) {
       }
 
       const data = await response.json();
+      showLoader();
       triggerNotification(data.message || 'Task shared successfully!');
       await loadSharedTasks();
       updateCounts();
@@ -1533,6 +1573,7 @@ document.getElementById("importTasks").addEventListener("change", async (event) 
         }
 
         alert("Tasks imported successfully!");
+        showLoader();
         triggerNotification("✅ Tasks imported successfully!");
 
         // Reload tasks from backend
@@ -1589,6 +1630,7 @@ document.getElementById("importCategories").addEventListener("change", async (ev
         }
 
         alert("Categories imported successfully!");
+        showLoader();
         triggerNotification("✅ Categories imported successfully!");
 
         // Reload categories from backend
