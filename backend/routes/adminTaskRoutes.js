@@ -75,7 +75,7 @@ router.get('/:id', async (req, res) => {
       .populate('category', 'name color');
     
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'admin 1 Task not found' });
     }
     
     res.json(task);
@@ -120,7 +120,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task) return res.status(404).json({ message: 'admin3 Task not found' });
 
     // Convert category to ObjectId if valid, otherwise keep it null
     const newCategoryId = req.body.category && mongoose.Types.ObjectId.isValid(req.body.category) 
@@ -158,7 +158,7 @@ router.delete('/:id', async (req, res) => {
     const task = await Task.findByIdAndDelete(req.params.id);
     
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: ' admin 2 Task not found' });
     }
     
     res.json({ message: 'Task deleted successfully' });

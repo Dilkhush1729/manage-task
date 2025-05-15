@@ -874,9 +874,49 @@ textarea {
     padding: 10px;
     margin-top: 1.5rem;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     border-top: 1px solid var(--border-color);
 }
+#share-email{
+    height: 40px;
+    width: 100%;
+    border-radius: 6px;
+    padding: 9px;
+}
+.shared-modal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#shared-content{
+    max-width: 500px;
+    width: 350px;
+    border-radius: 20px;
+    background-color: white;
+    outline: none;
+    border: 2px solid #d2d0d0;
+}
+
+.shared-task-badge {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  
+  /* Share modal styles */
+  .share-modal .modal-content {
+    max-width: 400px;
+  }
 
 .complete-button {
     display: flex;

@@ -45,7 +45,15 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  categoryHistory: [categoryHistorySchema] // New field to track category changes
+  categoryHistory: [categoryHistorySchema], // New field to track category changes
+  sharedWith: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    email: { type: String, required: true },
+    access: { type: String, enum: ['view', 'edit'], default: 'view' },
+    status: { type: String, enum: ['pending', 'accepted'], default: 'pending' },
+    token: { type: String, required: true },
+    sharedAt: { type: Date, default: Date.now }
+  }]
 });
 
 module.exports = mongoose.model('Task', taskSchema);

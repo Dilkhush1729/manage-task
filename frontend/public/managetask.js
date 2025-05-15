@@ -41,7 +41,7 @@ calendarDiv.style.visibility = 'hidden';
 deleteConfirmationModal.style.display = "none";
 
 // API Base URL - Change this to your backend URL
-// let API_URL = 'http://localhost:5000/api';
+// let SHARED_API_URL = 'http://localhost:5000/api';
 
 let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
@@ -56,6 +56,49 @@ let isGridView = true;
 let isListView = false;
 let previousCategories = [];
 
+let sharedTasks = [];
+let tasksSharedByMe = [];
+
+async function loadSharedTasks() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      logout();
+      return;
+    }
+
+    // Load tasks shared with me
+    const sharedResponse = await fetch(`${API_URL}/tasks/share/shared-with-me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!sharedResponse.ok) {
+      const errorData = await sharedResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to load shared tasks');
+    }
+
+    sharedTasks = await sharedResponse.json();
+
+    // Load tasks I've shared with others
+    const sharedByMeResponse = await fetch(`${API_URL}/tasks/share/shared-by-me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!sharedByMeResponse.ok) {
+      const errorData = await sharedByMeResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to load tasks shared by me');
+    }
+
+    tasksSharedByMe = await sharedByMeResponse.json();
+
+  } catch (error) {
+    console.error('Error loading shared tasks:', error);
+    triggerNotification(error.message || 'Error loading shared tasks');
+    // Initialize empty arrays if loading fails
+    sharedTasks = [];
+    tasksSharedByMe = [];
+  }
+}
 // Authentication Check
 function checkAuth() {
   const token = localStorage.getItem('token');
@@ -112,6 +155,7 @@ async function init() {
   setUserInfo();
 
   await loadFromBackend();
+  await loadSharedTasks();
   renderTasks();
   renderCategories();
   updateCounts();
@@ -263,6 +307,10 @@ async function loadFromBackend() {
       }
     });
 
+    // Load Shared tasks
+
+    loadSharedTasks();
+
     if (tasksResponse.ok) {
       tasks = await tasksResponse.json();
     } else if (tasksResponse.status === 401) {
@@ -308,7 +356,7 @@ async function loadFromBackend() {
 }
 // loader 
 const loader = document.getElementById('bar_loader');
-function showLoader(){
+function showLoader() {
   loader.style.visibility = 'visible';
   setTimeout(() => {
     loader.style.visibility = 'hidden';
@@ -588,6 +636,10 @@ function renderTasks() {
   } else if (currentView.startsWith('category-')) {
     const categoryId = currentView.replace('category-', '');
     filteredTasks = filteredTasks.filter(task => task.category === categoryId);
+  } else if (currentView === 'shared-with-me') {
+    filteredTasks = sharedTasks;
+  } else if (currentView === 'shared-by-me') {
+    filteredTasks = tasksSharedByMe;
   }
 
   // Apply search filter
@@ -611,6 +663,7 @@ function renderTasks() {
 
   // Render each task
   filteredTasks.forEach(task => {
+
     const taskCard = document.createElement('div');
     taskCard.className = `task-card ${task.completed ? 'completed' : ''}`;
     taskCard.dataset.id = task._id;
@@ -646,15 +699,20 @@ function renderTasks() {
             <span>${category.name}</span>
           </div>
           ` : ''}
+          ${task.sharedWith && task.sharedWith.length > 0 ?
+            `<span class="shared-task-badge">Shared (${task.sharedWith.length})</span>` :
+            ''}
           <div class="task-priority">
             <span class="priority-indicator priority-${task.priority}"></span>
             <span>${capitalizeFirstLetter(task.priority)}</span>
           </div>
         </div>
+        
       `;
     }
     else {
       // List view
+      console.log('i am called ...')
       taskCard.innerHTML = `
         <div class="task-checkbox ${task.completed ? 'checked' : ''}" data-id="${task._id}">
           ${task.completed ? '<i class="fas fa-check"></i>' : ''}
@@ -680,6 +738,9 @@ function renderTasks() {
             <span>${capitalizeFirstLetter(task.priority)}</span>
           </div>
         </div>
+        ${task.sharedWith && task.sharedWith.length > 0 ?
+          `<span class="shared-task-badge">Shared (${task.sharedWith.length})</span>` :
+          ''}
       `;
     }
 
@@ -687,8 +748,10 @@ function renderTasks() {
 
     // Add event listeners
     taskCard.addEventListener('click', (e) => {
+      console.log('clicked ...')
       // Don't open details if clicking on checkbox
       if (!e.target.closest('.task-checkbox')) {
+        console.log('cal br ...')
         openTaskDetailsModal(task._id);
       }
     });
@@ -757,6 +820,12 @@ function renderEmptyState() {
     const category = categories.find(cat => cat._id === categoryId);
     message = `No tasks in ${category ? category.name : 'this category'}`;
     icon = 'fas fa-tag';
+  } else if (currentView === 'shared-with-me') {
+    message = 'No tasks in Shared with Me';
+    icon = 'fas fa-check-circle';
+  } else if (currentView === 'shared-by-me') {
+    message = 'No tasks in Shared by Me';
+    icon = 'fas fa-check-circle';
   } else {
     message = 'No tasks yet';
     icon = 'fas fa-tasks';
@@ -849,6 +918,11 @@ function renderCategories() {
 }
 
 function updateCounts() {
+
+  // Shared task Count
+  document.getElementById('shared-count').textContent = sharedTasks.length;
+  document.getElementById('shared-by-me-count').textContent = tasksSharedByMe.length;
+
   // All tasks count
   document.getElementById('all-count').textContent = tasks.length;
 
@@ -998,8 +1072,11 @@ function formatDateTime(dateString) {
 }
 
 function openTaskDetailsModal(taskId) {
+  // debugger;
   currentTaskId = taskId;
-  const task = tasks.find(task => task._id === taskId);
+  const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
+  console.log(' rana tasks ', task)
+
   if (!task) return;
 
   const taskDetailsTitle = document.getElementById('task-details-title');
@@ -1010,6 +1087,7 @@ function openTaskDetailsModal(taskId) {
   const taskDetailsPriority = document.getElementById('task-details-priority');
   const taskDetailsDescription = document.getElementById('task-details-description-text');
   const completeTaskButton = document.getElementById('complete-task-button');
+  const shareTaskButton = document.getElementById('share_task_btn');
 
   taskDetailsTitle.textContent = task.name;
 
@@ -1028,6 +1106,8 @@ function openTaskDetailsModal(taskId) {
 
   const currentCategory = categories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
 
+  console.log('hgh', categories)
+
   taskDetailsCategory.innerHTML = `Category : <span class="category-color"></span> ${currentCategory.name}`;
 
 
@@ -1037,6 +1117,13 @@ function openTaskDetailsModal(taskId) {
   } else {
     categoryHistorydiv.style.display = 'block';
   }
+
+  // share task button
+  shareTaskButton.addEventListener('click', () => {
+    openShareModal(task._id)
+    closeTaskDetailsModal();
+  });
+  console.log('share btn ', shareTaskButton)
 
   // Display category history
   if (task.categoryHistory) {
@@ -1087,6 +1174,101 @@ function openTaskDetailsModal(taskId) {
 
   taskDetailsModal.style.display = 'block';
   overlay.style.display = 'block';
+}
+
+function openShareModal(taskId) {
+
+  const existingModal = document.querySelector('.shared-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  const shareModal = document.createElement('div');
+  shareModal.className = 'shared-modal';
+  shareModal.innerHTML = `
+    <div class="modal-content" id="shared-content">
+      <div class="modal-header">
+        <h2>Share Task</h2>
+        <button class="close-button" id="close-share-modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="share-email">Email Address</label>
+          <input type="email" id="share-email" placeholder="Enter recipient's email">
+        </div>
+        <div class="form-group">
+          <label for="share-access">Access Level</label>
+          <select id="share-access">
+            <option value="view">Can View</option>
+            <option value="edit">Can Edit</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="save-button" id="share-task-button">Share</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(shareModal);
+  document.getElementById('overlay').style.display = 'block';
+
+  // Close modal handler
+  function closeShareModal(){
+    console.log('i am clicked ...')
+    document.body.removeChild(shareModal);
+    document.getElementById('overlay').style.display = 'none';
+  };
+
+  document.getElementById('close-share-modal').addEventListener('click', ()=>{
+    closeShareModal();
+  });
+
+  // Share button handler
+  document.getElementById('share-task-button').addEventListener('click', async () => {
+    const email = document.getElementById('share-email').value.trim();
+    const access = document.getElementById('share-access').value;
+
+    if (!email) {
+      triggerNotification('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        logout();
+        return;
+      }
+
+      // Updated endpoint URL
+      const response = await fetch(`${API_URL}/tasks/share/${taskId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email, access })
+      });
+
+      // Handle response
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to share task');
+      }
+
+      const data = await response.json();
+      triggerNotification(data.message || 'Task shared successfully!');
+      await loadSharedTasks();
+      updateCounts();
+      closeShareModal();
+    } catch (error) {
+      console.error('Sharing error:', error);
+      triggerNotification(error.message || 'Failed to share task');
+    }
+  });
 }
 
 function closeTaskDetailsModal() {
@@ -1703,21 +1885,21 @@ function openCalendar() {
     if (!time || typeof time !== 'string' || !time.includes(':')) {
       return ''; // or return 'Invalid Time'
     }
-  
+
     const [hourStr, minuteStr] = time.split(':');
     const hour = Number(hourStr);
     const minute = Number(minuteStr);
-  
+
     if (isNaN(hour) || isNaN(minute)) {
       return ''; // or return 'Invalid Time'
     }
-  
+
     const period = hour < 12 ? 'AM' : 'PM';
     const formattedHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  
+
     return `${formattedHour}:${minute.toString().padStart(2, '0')} ${period}`;
   }
-  
+
 
   // Show task details
   function showTaskDetails(task) {

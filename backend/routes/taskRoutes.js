@@ -40,7 +40,7 @@ router.get('/:id', async (req, res) => {
       user: req.userId 
     });
     
-    if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task) return res.status(404).json({ message: 'test 1 Task not found' });
     res.json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.userId });
-    if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task) return res.status(404).json({ message: ' test 2Task not found' });
 
     // Convert category to ObjectId if it's a valid string, otherwise keep it null
     const newCategoryId = req.body.category && mongoose.Types.ObjectId.isValid(req.body.category) 
@@ -88,7 +88,7 @@ router.delete('/:id', async (req, res) => {
       user: req.userId 
     });
     
-    if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task) return res.status(404).json({ message: ' test 3 Task not found' });
     res.json({ message: 'Task deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -98,20 +98,46 @@ router.delete('/:id', async (req, res) => {
 // Toggle task completion
 router.patch('/:id/toggle', async (req, res) => {
   try {
-    const task = await Task.findOne({ 
-      _id: req.params.id,
-      user: req.userId 
+    console.log('Toggling task for ID:', req.params.id, 'and User ID:', req.userId);
+
+    const task = await Task.findOne({
+      $and: [
+        { _id: req.params.id },
+        {
+          $or: [
+            { user: req.userId },
+            { "sharedWith.user": req.userId }
+          ]
+        }
+      ]
     });
-    
-    if (!task) return res.status(404).json({ message: 'Task not found' });
-    
+
+    if (!task) {
+      console.log('No task found for ID:', req.params.id);
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check permission
+    const isOwner = task.user && task.user.equals(req.userId);
+    const hasEditAccess = task.sharedWith.some(shared =>
+      shared.user && shared.user.equals(req.userId) && shared.access === 'edit'
+    );
+
+    if (!isOwner && !hasEditAccess) {
+      return res.status(403).json({ message: 'You do not have permission to modify this task' });
+    }
+
+    // Toggle completion
     task.completed = !task.completed;
     const updatedTask = await task.save();
-    
+
     res.json(updatedTask);
   } catch (error) {
+    console.error('Error toggling task:', error);
     res.status(400).json({ message: error.message });
   }
 });
+
+
 
 module.exports = router;

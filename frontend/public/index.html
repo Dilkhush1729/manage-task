@@ -88,6 +88,23 @@
                     </ul>
                 </div>
 
+                <!-- Share Task Section  -->
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Shared Tasks</h3>
+                    <ul class="sidebar-list">
+                        <li class="sidebar-item" data-view="shared-with-me">
+                            <i class="fas fa-share-alt"></i>
+                            <span>Shared With Me</span>
+                            <span class="task-count" id="shared-count">0</span>
+                        </li>
+                        <li class="sidebar-item" data-view="shared-by-me">
+                            <i class="fas fa-share-square"></i>
+                            <span>Shared By Me</span>
+                            <span class="task-count" id="shared-by-me-count">0</span>
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- Categories -->
                 <div class="sidebar-section">
                     <div class="sidebar-header">
@@ -280,6 +297,10 @@
             </div>
         </div>
         <div class="task-details-actions">
+            <button id="share_task_btn" class="complete-button">
+                <i class="fas fa-share"></i>
+                <span>Share Task</span>
+            </button>
             <button id="complete-task-button" class="complete-button">
                 <i class="fas fa-check"></i>
                 <span>Mark as Complete</span>
@@ -441,7 +462,7 @@
         })();
     </script>
 
-    <script src="./managetask.js"></script>
+    <script type="module"  src="./managetask.js"></script>
 </body>
 
 </html>

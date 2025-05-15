@@ -10,6 +10,7 @@ const adminUserRoutes = require('./routes/adminUserRoutes.js')
 const adminTaskRoutes = require('./routes/adminTaskRoutes.js')
 const adminCategoryRoutes = require('./routes/adminCategoryRoutes.js')
 const Admin = require('./model/Admin.js')
+const shareRoutes = require('./routes/shareRoutes.js')
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin/users', adminUserRoutes);
 app.use('/api/admin/tasks', adminTaskRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
+app.use('/api/tasks/share', shareRoutes)
 
 // Serve static files (your frontend)
 app.use(express.static('public'));
