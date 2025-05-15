@@ -282,7 +282,7 @@
       grid-template-columns: 1fr;
     }
   
-    .auth-side-content,.auth-subtitle {
+    .auth-side-content {
       display: none;
     }
   
@@ -306,7 +306,9 @@
     .auth-form-content{
       padding: 45px;
     }
-    
+    .auth-subtitle{
+      padding-bottom: 20px;
+    }
   }
   
   
