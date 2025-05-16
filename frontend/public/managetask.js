@@ -272,6 +272,7 @@ function setupEventListeners() {
 
   // Grid/List View Toggle
   gridViewButton.addEventListener('click', () => {
+    window.location.reload();
     isGridView = true;
     isListView = false;
     gridViewButton.classList.add('active');
@@ -279,17 +280,16 @@ function setupEventListeners() {
     taskContainer.classList.remove('list-view');
     taskContainer.classList.remove('grid-view');
     localStorage.setItem('viewMode', 'grid');
-    window.location.reload();
   });
 
   listViewButton.addEventListener('click', () => {
+    window.location.reload();
     isListView = true;
     isGridView = false;
     listViewButton.classList.add('active');
     gridViewButton.classList.remove('active');
     taskContainer.classList.add('list-view');
     localStorage.setItem('viewMode', 'list');
-    window.location.reload();
   });
 
   enableCalendarView.addEventListener('click', (e) => {
