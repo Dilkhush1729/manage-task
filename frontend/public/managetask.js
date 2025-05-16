@@ -879,12 +879,19 @@ function renderEmptyState() {
       <p class="empty-state-description">
         ${searchInput.value ? 'Try a different search term or' : 'Get started by'} creating a new task.
       </p>
-      <button class="empty-state-button" id="empty-state-create-button" onclick="openTaskModal()">
+      <button class="empty-state-button" id="empty-state-create-button">
         <i class="fas fa-plus"></i>
         <span>Create Task</span>
       </button>
     </div>
   `;
+
+  const openTask = document.getElementById('empty-state-create-button');
+  if (openTask) {
+    openTask.addEventListener('click', () => {
+      openTaskModal();
+    })
+  }
 }
 
 function renderCategories() {

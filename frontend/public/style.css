@@ -1179,7 +1179,8 @@ textarea {
 
 #notification-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
+    right: 20px;
     max-height: 400px;
     overflow-y: auto;
     z-index: 900;
@@ -1967,5 +1968,14 @@ textarea {
         height: 2.5rem;
         border-radius: 10px;
         transition: var(--transition);
+    }
+    
+}
+
+@media (max-width: 410px) {
+    
+    .user-dropdown-content{
+        position: absolute;
+        left: 0;
     }
 }
