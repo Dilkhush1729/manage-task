@@ -833,7 +833,7 @@ textarea {
 
 .task-details-content {
     padding: 15px;
-    background-color: #f0f0f0;
+    background-color: var(--bg-tertiary);
 }
 
 .task-details-info {
@@ -1905,9 +1905,11 @@ textarea {
 
 /* Responsive */
 @media (max-width: 768px) {
+
     .sidebar {
         position: fixed;
         z-index: 1;
+        height: -webkit-fill-available;
         /* transform: translateX(-100%); */
     }
 
@@ -1973,7 +1975,7 @@ textarea {
 }
 
 @media (max-width: 410px) {
-    
+
     .user-dropdown-content{
         position: absolute;
         left: 0;
