@@ -25,6 +25,26 @@
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="search-input" placeholder="Search tasks">
                 </div>
+
+                <!-- notification section  -->
+                <div id="notification-wrapper">
+                    <button id="notification-btn" aria-label="Notifications">
+                        <i class="fa-solid fa-bell" style="color: #4f46e5;"></i>
+                        <span id="notification-count" class="badge">0</span>
+                    </button>
+                    <div id="notificationModal" style="display: none;">
+                        <div id="notification-dropdown" class="dropdown hidden">
+                            <h4>Notifications</h4>
+                            <div id="notification-list"></div>
+                            <div class="dropdown-footer">
+                                <button id="clear-all-btn">Clear All</button>
+                                <button id="mark-all-read">Mark All Read</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End notification section  -->
+
                 <div class="class_calendar">
                     <button id="calendar-view-enable" class="icon-button" title="Access Your All Task in Calendar View">
                         <i class="fa-solid fa-calendar-days"></i>

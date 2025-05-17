@@ -11,7 +11,7 @@ const adminTaskRoutes = require('./routes/adminTaskRoutes.js')
 const adminCategoryRoutes = require('./routes/adminCategoryRoutes.js')
 const Admin = require('./model/Admin.js')
 const shareRoutes = require('./routes/shareRoutes.js')
-
+const notificationRoutes  = require('./routes/notificationRoutes.js')
 dotenv.config();
 
 const app = express();
@@ -35,6 +35,9 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/categories', categoryRoutes);
+
+// Notification routes 
+app.use('/api/notifications', notificationRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);

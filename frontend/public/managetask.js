@@ -31,6 +31,7 @@ const dropdownButton = document.querySelector('.dropdown-button');
 const dropdownContent = document.querySelector('.dropdown-content');
 const sortOptions = document.querySelectorAll('.dropdown-content a');
 const deleteConfirmationModal = document.getElementById("confirmationModal");
+const notificationModal = document.getElementById("notificationModal");
 const taskContentContainer = document.getElementById('calendar-grid');
 const enableCalendarView = document.getElementById('calendar-view-enable');
 const userAvatar = document.querySelector('.user-avatar');
@@ -41,8 +42,18 @@ calendarDiv.style.visibility = 'hidden';
 deleteConfirmationModal.style.display = "none";
 const saveTasksBtn = document.getElementById('save-task-button');
 
+// notification section
+const dropdown = document.getElementById('notification-dropdown');
+const btn = document.getElementById('notification-btn');
+const list = document.getElementById('notification-list');
+const badge = document.getElementById('notification-count');
+const markAllBtn = document.getElementById('mark-all-read');
+const clearAllBtn = document.getElementById('clear-all-btn');
+
+notificationModal.style.visibility = 'hidden';
+
 // API Base URL - Change this to your backend URL
-// let SHARED_API_URL = 'http://localhost:5000/api';
+// let API_URL = 'http://localhost:5000/api';
 
 let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
@@ -162,6 +173,7 @@ async function init() {
   updateCounts();
   setupEventListeners();
   checkTheme();
+  fetchNotifications();
 }
 
 if (window.innerWidth < 768 && sidebar) {
@@ -417,6 +429,7 @@ async function addTask(task) {
       tasks.push(newTask);
       showLoader();
       triggerNotification("🎉 Task saved successfully! One step closer to achieving your goals! 🚀");
+      triggerDisplayNotification('🎉 Task saved successfully! One step closer to achieving your goals! 🚀', 'warning')
       renderTasks();
       updateCounts();
       return newTask;
@@ -448,12 +461,14 @@ async function updateTask(id, updatedTask) {
 
     if (response.ok) {
       const updated = await response.json();
+      console.log('updated data ', updated)
       const index = tasks.findIndex(task => task._id === id);
       if (index !== -1) {
         tasks[index] = updated;
       }
       showLoader();
       triggerNotification("🔄 Task updated successfully! Keep up the momentum! 🚀");
+      triggerDisplayNotification(`🔄 [ ${updated.name} ] status updated successfully! Keep up the momentum! 🚀`, `${updated.priority}`);
       renderTasks();
       updateCounts();
     } else if (response.status === 401) {
@@ -483,6 +498,7 @@ async function deleteTask(id) {
       tasks = tasks.filter(task => task._id !== id);
       showLoader();
       triggerNotification("✅ Task deleted successfully! Stay focused on what matters! 🚀");
+      triggerDisplayNotification('✅ Task deleted successfully! Stay focused on what matters! 🚀', 'warning');
       renderTasks();
       updateCounts();
     } else if (response.status === 401) {
@@ -557,6 +573,7 @@ async function addCategory(category) {
       categories.push(newCategory);
       showLoader();
       triggerNotification("✅ Category has been added successfully!");
+      triggerDisplayNotification("✅ Category has been added successfully!", 'warning');
       renderCategories();
       return newCategory;
     } else if (response.status === 401) {
@@ -592,6 +609,7 @@ async function updateCategory(id, updatedCategory) {
       }
       showLoader();
       triggerNotification("🔄 Category updated successfully! Keep everything organized! 📂");
+      triggerDisplayNotification("🔄 Category updated successfully! Keep everything organized! 📂", "warning");
       renderCategories();
       renderTasks(); // Re-render tasks to update category colors
     } else if (response.status === 401) {
@@ -622,6 +640,7 @@ async function deleteCategory(id) {
       // The backend will handle updating tasks that use this category
       showLoader();
       triggerNotification("🎯 Category deleted successfully! Time for a fresh start! 🚀");
+      triggerDisplayNotification("🎯 Category deleted successfully! Time for a fresh start! 🚀", "warning");
       renderCategories();
 
       // Reload tasks to get the updated category references
@@ -821,9 +840,12 @@ function renderTasks() {
           if (updatedTask.completed) {
             showLoader();
             triggerNotification("🎉 Congratulations! You have completed your task.");
+            triggerDisplayNotification("🎉 Congratulations! You have completed your task.", "warning");
           } else {
             showLoader();
             triggerNotification("😔 Oops! You have undone your task.");
+            triggerDisplayNotification(`😔 Oops!  You have undone [ ${updatedTask.name} ].`, "warning");
+
           }
         } else if (response.status === 401) {
           logout();
@@ -1308,6 +1330,8 @@ function openShareModal(taskId) {
       const data = await response.json();
       showLoader();
       triggerNotification(data.message || 'Task shared successfully!');
+      triggerDisplayNotification(data.message || 'Task shared successfully!', 'warning');
+
       await loadSharedTasks();
       updateCounts();
       closeShareModal();
@@ -1582,6 +1606,8 @@ document.getElementById("importTasks").addEventListener("change", async (event) 
         alert("Tasks imported successfully!");
         showLoader();
         triggerNotification("✅ Tasks imported successfully!");
+        triggerDisplayNotification("✅ Tasks imported successfully!", "warning");
+
 
         // Reload tasks from backend
         await loadFromBackend();
@@ -1639,6 +1665,7 @@ document.getElementById("importCategories").addEventListener("change", async (ev
         alert("Categories imported successfully!");
         showLoader();
         triggerNotification("✅ Categories imported successfully!");
+        triggerDisplayNotification("✅ Categories imported successfully!", "warning");
 
         // Reload categories from backend
         await loadFromBackend();
@@ -2099,6 +2126,157 @@ function openCalendar() {
       initWeekView();
     }
   };
+}
+
+// Manage Notification 
+btn.addEventListener('click', () => {
+  dropdown.classList.toggle('hidden');
+  notificationModal.style.visibility = 'visible';
+});
+
+document.addEventListener('click', (e) => {
+  if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.classList.add('hidden');
+    notificationModal.style.visibility = 'hidden';
+  }
+});
+
+async function fetchNotifications() {
+  try {
+    const res = await fetch(`${API_URL}/notifications`);
+    if (!res.ok) throw new Error('Failed to fetch');
+    const notifications = await res.json();
+
+    list.innerHTML = '';
+    let unreadCount = 0;
+
+    notifications.forEach(n => {
+      const div = document.createElement('div');
+      div.className = `notification-item ${n.read ? 'read' : 'unread'}`;
+      div.style.background = '#4f46e5';
+      div.style.color = 'white';
+      div.dataset.id = n._id;
+
+      // Count unread notifications correctly
+      if (!n.read) unreadCount++;
+
+      // Wrapper for message and time
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'notification-content';
+
+      const message = document.createElement('p');
+      message.className = 'notification-message';
+      message.textContent = n.message;
+
+      const time = document.createElement('small');
+      time.className = 'notification-time';
+      time.textContent = new Date(n.triggeredAt).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      contentWrapper.appendChild(message);
+      contentWrapper.appendChild(time);
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.setAttribute('aria-label', 'Delete notification');
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = async (e) => {
+        e.stopPropagation(); // Prevent marking as read when deleting
+        try {
+          await fetch(`${API_URL}/notifications/${n._id}`, { method: 'DELETE' });
+          fetchNotifications();
+        } catch (err) {
+          console.error('Delete failed', err);
+        }
+      };
+
+      div.appendChild(contentWrapper);
+      div.appendChild(deleteBtn);
+
+      // Mark as read on click
+      div.addEventListener('click', async () => {
+        if (!n.read) {
+          await markAsRead(n._id);
+          fetchNotifications();
+        }
+      });
+
+      list.appendChild(div);
+    });
+
+    // Show or hide badge
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount;
+      badge.classList.add('show');
+    } else {
+      badge.classList.remove('show');
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
+async function markAsRead(id) {
+  try {
+    await fetch(`${API_URL}/notifications/${id}/read`, {
+      method: 'PATCH',
+    });
+  } catch (e) {
+    console.error('Failed to mark notification read:', e);
+  }
+}
+
+markAllBtn.addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_URL}/notifications`);
+    const notifications = await res.json();
+
+    for (const n of notifications.filter(n => !n.read)) {
+      await markAsRead(n._id);
+    }
+    fetchNotifications();
+  } catch (e) {
+    console.error('Failed to mark all read:', e);
+  }
+});
+
+// Call this function anywhere to create a notification
+window.triggerDisplayNotification = async function (message, type = 'info') {
+  try {
+    const res = await fetch(`${API_URL}/notifications`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message, type }),
+    });
+    if (!res.ok) throw new Error('Failed to create notification');
+    fetchNotifications();
+  } catch (e) {
+    console.error('Error triggering notification:', e);
+  }
+};
+
+if (clearAllBtn) {
+  clearAllBtn.addEventListener('click', async () => {
+    const confirmClear = confirm('Are you sure you want to delete all notifications?');
+    if (!confirmClear) return;
+
+    try {
+      await fetch(`${API_URL}/notifications`, { method: 'DELETE' });
+      fetchNotifications(); // Refresh UI
+    } catch (err) {
+      console.error('Error clearing notifications:', err);
+    }
+  });
 }
 
 // Initialize the app
