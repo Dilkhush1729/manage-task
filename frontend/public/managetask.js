@@ -67,6 +67,7 @@ let currentCategoryId = null;
 let isGridView = true;
 let isListView = false;
 let previousCategories = [];
+let ownerCategories = [];
 
 let sharedTasks = [];
 let tasksSharedByMe = [];
@@ -365,7 +366,6 @@ async function loadFromBackend() {
       console.error('Failed to load tasks');
       tasks = [];
     }
-
     // Load Categories
     const categoriesResponse = await fetch(`${API_URL}/categories`, {
       headers: {
@@ -804,10 +804,9 @@ function renderTasks() {
 
     // Add event listeners
     taskCard.addEventListener('click', (e) => {
-      console.log('clicked ...')
       // Don't open details if clicking on checkbox
       if (!e.target.closest('.task-checkbox')) {
-        console.log('cal br ...')
+        console.log('taskCard Clicked...');
         openTaskDetailsModal(task._id);
       }
     });
@@ -972,16 +971,6 @@ function renderCategories() {
       })
     });
   });
-
-  // Render task form categories
-  taskCategorySelect.innerHTML = '<option value="">No Category</option>';
-  categories.forEach(category => {
-    const option = document.createElement('option');
-    option.value = category._id;
-    option.textContent = category.name;
-    taskCategorySelect.appendChild(option);
-  });
-
   updateCounts();
 }
 
@@ -1024,7 +1013,7 @@ function updateCounts() {
 }
 
 // Modal Functions
-function openTaskModal(taskId = null) {
+async function openTaskModal(taskId = null) {
   currentTaskId = taskId;
   const modalTitle = document.getElementById('modal-title');
   const taskNameInput = document.getElementById('task-name');
@@ -1038,19 +1027,75 @@ function openTaskModal(taskId = null) {
   // Reset form
   taskForm.reset();
   if (taskId) {
+
     // Edit mode
     modalTitle.textContent = 'Edit Task';
     deleteTaskButton.style.display = 'block';
 
-    const task = tasks.find(task => task._id === taskId);
+    // Fetch shared tasks data - example URL (adjust to your API)
+    const sharedResponse = await fetch(`${API_URL}/tasks/share/shared-with-me`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!sharedResponse.ok) {
+      console.error("Failed to fetch shared tasks");
+      return;
+    }
+
+    let sharedTasks = await sharedResponse.json();
+
+    const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
+
+    if (sharedTasks) {
+      const ownerId = task.user._id || task.user;
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/categories?ownerId=${ownerId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const ownerCategories = await response.json();
+          console.log("Owner categories:", ownerCategories);
+
+          // Populate the select only with ownerCategories
+          ownerCategories.forEach(category => {
+            const option = document.createElement('option');
+            option.classList.add('categoryDropdown');
+            option.value = category._id;
+            option.textContent = category.name;
+            taskCategorySelect.appendChild(option);
+          });
+
+          // Set selected category if found
+          const selectedCategory = ownerCategories.find(cat => cat._id === task.category);
+          taskCategorySelect.value = selectedCategory ? selectedCategory._id : '';
+
+        } else {
+          console.error("Failed to load owner categories.");
+          taskCategorySelect.value = '';
+        }
+      } catch (error) {
+        console.error("Error fetching owner categories:", error);
+        taskCategorySelect.value = '';
+      }
+    }
+
+    console.log("share task category ", task)
     if (task) {
       taskNameInput.value = task.name;
       taskDescriptionInput.value = task.description || '';
       dueDateInput.value = task.dueDate || '';
       dueTimeInput.value = task.dueTime || '';
-      taskCategorySelect.value = task.category || '';
+      taskCategorySelect.value = task.category || "";
       taskPrioritySelect.value = task.priority;
       taskIdInput.value = task._id;
+
     }
   } else {
     // Create mode
@@ -1070,6 +1115,7 @@ function openTaskModal(taskId = null) {
 function closeTaskModal() {
   taskModal.style.display = 'none';
   overlay.style.display = 'none';
+  taskCategorySelect.innerHTML = '';
 }
 
 function openCategoryModal(categoryId = null) {
@@ -1139,11 +1185,11 @@ function formatDateTime(dateString) {
   return date.toLocaleString('en-US', options);
 }
 
-function openTaskDetailsModal(taskId) {
+async function openTaskDetailsModal(taskId) {
   // debugger;
   currentTaskId = taskId;
   const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
-  console.log(' rana tasks ', task)
+  console.log(' task details model task : ', task)
 
   if (!task) return;
 
@@ -1172,9 +1218,33 @@ function openTaskDetailsModal(taskId) {
     taskDetailsDate.textContent = 'Due Date : No due date';
   }
 
-  const currentCategory = categories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
+  if (sharedTasks) {
+    const ownerId = task.user._id || task.user;
 
-  console.log('hgh', categories)
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/categories?ownerId=${ownerId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        ownerCategories = await response.json();
+        // You can use `ownerCategories` instead of global `categories`
+        console.log("Owner categories:", ownerCategories);
+      } else {
+        console.error("Failed to load owner categories.");
+      }
+    } catch (error) {
+      console.error("Error fetching owner categories:", error);
+    }
+  }
+
+
+  const currentCategory = categories.find(cat => cat._id === task.category) || ownerCategories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
+
+  console.log('current user categories : ', categories);
 
   taskDetailsCategory.innerHTML = `Category : <span class="category-color"></span> ${currentCategory.name}`;
 
@@ -1188,16 +1258,16 @@ function openTaskDetailsModal(taskId) {
 
   // share task button
   shareTaskButton.addEventListener('click', () => {
+    console.log("share model task data ..", task)
     openShareModal(task._id)
     closeTaskDetailsModal();
   });
-  console.log('share btn ', shareTaskButton)
 
   // Display category history
   if (task.categoryHistory) {
     const categoryHistoryRows = task.categoryHistory.map(history => {
-      const category = categories.find(cat => cat._id === history.categoryId);
-
+      const category = categories.find(cat => cat._id === history.categoryId) || ownerCategories.find(cat => cat._id === history.categoryId);
+      console.log('category name : ', category)
       // Check if the category was found
       const categoryName = category ? category.name : 'Unknown Category';
       const changedAt = formatDateTime(history.changedAt);
@@ -1245,6 +1315,7 @@ function openTaskDetailsModal(taskId) {
 }
 
 function openShareModal(taskId) {
+  console.log("Share Model Called ...")
 
   const existingModal = document.querySelector('.shared-modal');
   if (existingModal) {
@@ -2140,6 +2211,11 @@ document.addEventListener('click', (e) => {
     notificationModal.style.visibility = 'hidden';
   }
 });
+const closeNotificationBtn = document.getElementById('close-notification');
+closeNotificationBtn.addEventListener('click', () => {
+  dropdown.classList.add('hidden');
+  notificationModal.style.visibility = 'hidden';
+})
 
 async function fetchNotifications() {
   try {

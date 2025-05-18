@@ -11,7 +11,9 @@ router.use(auth);
 // Get all categories for the current user
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find({ user: req.userId });
+    const ownerId = req.query.ownerId || req.userId; // fallback to self
+
+    const categories = await Category.find({ user: ownerId });
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });

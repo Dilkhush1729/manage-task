@@ -50,7 +50,28 @@ router.get('/:id', async (req, res) => {
 // Update a task
 router.put('/:id', async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, user: req.userId });
+    const task = await Task.findOne({
+      $and: [
+        { _id: req.params.id },
+        {
+          $or: [
+            { user: req.userId },
+            { "sharedWith.user": req.userId }
+          ]
+        }
+      ]
+    });
+
+    // Check permission
+    const isOwner = task.user && task.user.equals(req.userId);
+    const hasEditAccess = task.sharedWith.some(shared =>
+      shared.user && shared.user.equals(req.userId) && shared.access === 'edit'
+    );
+
+    if (!isOwner && !hasEditAccess) {
+      return res.status(403).json({ message: 'You do not have permission to modify this task' });
+    }
+
     if (!task) return res.status(404).json({ message: ' test 2Task not found' });
 
     // Convert category to ObjectId if it's a valid string, otherwise keep it null

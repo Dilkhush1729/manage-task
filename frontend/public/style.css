@@ -2057,6 +2057,15 @@ textarea {
     background: var(--bg-tertiary);
     text-align: center;
 }
+#close-notification{
+    cursor: pointer;
+}
+
+.notification-head{
+    display: flex;
+    justify-content: space-between;
+    background: var(--bg-tertiary);
+}
 
 #notification-wrapper .notification-item {
     padding: 10px 16px;
