@@ -2143,10 +2143,15 @@ document.addEventListener('click', (e) => {
 
 async function fetchNotifications() {
   try {
-    const res = await fetch(`${API_URL}/notifications`);
-    if (!res.ok) throw new Error('Failed to fetch');
-    const notifications = await res.json();
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
 
+    const notifications = await res.json();
     list.innerHTML = '';
     let unreadCount = 0;
 
@@ -2157,10 +2162,8 @@ async function fetchNotifications() {
       div.style.color = 'white';
       div.dataset.id = n._id;
 
-      // Count unread notifications correctly
       if (!n.read) unreadCount++;
 
-      // Wrapper for message and time
       const contentWrapper = document.createElement('div');
       contentWrapper.className = 'notification-content';
 
@@ -2182,15 +2185,18 @@ async function fetchNotifications() {
       contentWrapper.appendChild(message);
       contentWrapper.appendChild(time);
 
-      // Delete button
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'delete-btn';
       deleteBtn.setAttribute('aria-label', 'Delete notification');
       deleteBtn.textContent = '×';
       deleteBtn.onclick = async (e) => {
-        e.stopPropagation(); // Prevent marking as read when deleting
+        e.stopPropagation();
         try {
-          await fetch(`${API_URL}/notifications/${n._id}`, { method: 'DELETE' });
+          const token = localStorage.getItem('token');
+          await fetch(`${API_URL}/notifications/${n._id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          });
           fetchNotifications();
         } catch (err) {
           console.error('Delete failed', err);
@@ -2200,7 +2206,6 @@ async function fetchNotifications() {
       div.appendChild(contentWrapper);
       div.appendChild(deleteBtn);
 
-      // Mark as read on click
       div.addEventListener('click', async () => {
         if (!n.read) {
           await markAsRead(n._id);
@@ -2211,7 +2216,7 @@ async function fetchNotifications() {
       list.appendChild(div);
     });
 
-    // Show or hide badge
+    // Badge update
     if (unreadCount > 0) {
       badge.textContent = unreadCount;
       badge.classList.add('show');
@@ -2226,8 +2231,10 @@ async function fetchNotifications() {
 
 async function markAsRead(id) {
   try {
+    const token = localStorage.getItem('token');
     await fetch(`${API_URL}/notifications/${id}/read`, {
       method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` }
     });
   } catch (e) {
     console.error('Failed to mark notification read:', e);
@@ -2236,7 +2243,10 @@ async function markAsRead(id) {
 
 markAllBtn.addEventListener('click', async () => {
   try {
-    const res = await fetch(`${API_URL}/notifications`);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     const notifications = await res.json();
 
     for (const n of notifications.filter(n => !n.read)) {
@@ -2251,12 +2261,14 @@ markAllBtn.addEventListener('click', async () => {
 // Call this function anywhere to create a notification
 window.triggerDisplayNotification = async function (message, type = 'info') {
   try {
+    const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/notifications`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ message, type }),
+      body: JSON.stringify({ message, type })
     });
     if (!res.ok) throw new Error('Failed to create notification');
     fetchNotifications();
@@ -2271,8 +2283,12 @@ if (clearAllBtn) {
     if (!confirmClear) return;
 
     try {
-      await fetch(`${API_URL}/notifications`, { method: 'DELETE' });
-      fetchNotifications(); // Refresh UI
+      const token = localStorage.getItem('token');
+      await fetch(`${API_URL}/notifications`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchNotifications();
     } catch (err) {
       console.error('Error clearing notifications:', err);
     }

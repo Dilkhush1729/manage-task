@@ -2,13 +2,21 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../model/notification');
+const auth = require('../middleware/auth.js')
+
+// Apply auth middleware to all routes
+router.use(auth);
 
 // Create a new notification
 router.post('/', async (req, res) => {
   const { message, type } = req.body;
 
   try {
-    const notification = new Notification({ message, type });
+    const notification = new Notification({
+      userId: req.user._id, // 👈 assign to the logged-in user
+      message,
+      type
+    });
     await notification.save();
     res.status(201).json(notification);
   } catch (err) {
@@ -19,7 +27,7 @@ router.post('/', async (req, res) => {
 // Get all notifications
 router.get('/', async (req, res) => {
   try {
-    const notifications = await Notification.find().sort({ triggeredAt: -1 });
+    const notifications = await Notification.find({ userId: req.user._id }).sort({ triggeredAt: -1 });
     res.json(notifications);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch notifications' });
@@ -49,7 +57,7 @@ router.delete('/:id', async (req, res) => {
 // Delete all notifications
 router.delete('/', async (req, res) => {
   try {
-    await Notification.deleteMany({});
+    await Notification.deleteMany({ userId: req.user._id });
     res.json({ message: 'All notifications deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete all notifications' });
