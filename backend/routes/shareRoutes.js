@@ -49,9 +49,6 @@ router.post('/:taskId', auth, async (req, res) => {
 
     await task.save();
 
-    // In production, you would send an email here
-    console.log(`Task shared with ${email}`);
-
     res.json({
       success: true,
       message: 'Task shared successfully'

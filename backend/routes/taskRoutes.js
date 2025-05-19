@@ -119,7 +119,6 @@ router.delete('/:id', async (req, res) => {
 // Toggle task completion
 router.patch('/:id/toggle', async (req, res) => {
   try {
-    console.log('Toggling task for ID:', req.params.id, 'and User ID:', req.userId);
 
     const task = await Task.findOne({
       $and: [
@@ -134,7 +133,6 @@ router.patch('/:id/toggle', async (req, res) => {
     });
 
     if (!task) {
-      console.log('No task found for ID:', req.params.id);
       return res.status(404).json({ message: 'Task not found' });
     }
 

@@ -411,7 +411,6 @@ function showLoader() {
 
 // Task Operations
 async function addTask(task) {
-  console.log('rana task', task)
   try {
     const token = localStorage.getItem('token');
 
@@ -461,7 +460,6 @@ async function updateTask(id, updatedTask) {
 
     if (response.ok) {
       const updated = await response.json();
-      console.log('updated data ', updated)
       const index = tasks.findIndex(task => task._id === id);
       if (index !== -1) {
         tasks[index] = updated;
@@ -768,7 +766,6 @@ function renderTasks() {
     }
     else {
       // List view
-      console.log('i am called ...')
       taskCard.innerHTML = `
         <div class="task-checkbox ${task.completed ? 'checked' : ''}" data-id="${task._id}">
           ${task.completed ? '<i class="fas fa-check"></i>' : ''}
@@ -806,7 +803,6 @@ function renderTasks() {
     taskCard.addEventListener('click', (e) => {
       // Don't open details if clicking on checkbox
       if (!e.target.closest('.task-checkbox')) {
-        console.log('taskCard Clicked...');
         openTaskDetailsModal(task._id);
       }
     });
@@ -1061,7 +1057,6 @@ async function openTaskModal(taskId = null) {
 
         if (response.ok) {
           const ownerCategories = await response.json();
-          console.log("Owner categories:", ownerCategories);
 
           // Populate the select only with ownerCategories
           ownerCategories.forEach(category => {
@@ -1086,7 +1081,6 @@ async function openTaskModal(taskId = null) {
       }
     }
 
-    console.log("share task category ", task)
     if (task) {
       taskNameInput.value = task.name;
       taskDescriptionInput.value = task.description || '';
@@ -1189,7 +1183,6 @@ async function openTaskDetailsModal(taskId) {
   // debugger;
   currentTaskId = taskId;
   const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
-  console.log(' task details model task : ', task)
 
   if (!task) return;
 
@@ -1232,7 +1225,6 @@ async function openTaskDetailsModal(taskId) {
       if (response.ok) {
         ownerCategories = await response.json();
         // You can use `ownerCategories` instead of global `categories`
-        console.log("Owner categories:", ownerCategories);
       } else {
         console.error("Failed to load owner categories.");
       }
@@ -1243,8 +1235,6 @@ async function openTaskDetailsModal(taskId) {
 
 
   const currentCategory = categories.find(cat => cat._id === task.category) || ownerCategories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
-
-  console.log('current user categories : ', categories);
 
   taskDetailsCategory.innerHTML = `Category : <span class="category-color"></span> ${currentCategory.name}`;
 
@@ -1258,7 +1248,6 @@ async function openTaskDetailsModal(taskId) {
 
   // share task button
   shareTaskButton.addEventListener('click', () => {
-    console.log("share model task data ..", task)
     openShareModal(task._id)
     closeTaskDetailsModal();
   });
@@ -1267,7 +1256,6 @@ async function openTaskDetailsModal(taskId) {
   if (task.categoryHistory) {
     const categoryHistoryRows = task.categoryHistory.map(history => {
       const category = categories.find(cat => cat._id === history.categoryId) || ownerCategories.find(cat => cat._id === history.categoryId);
-      console.log('category name : ', category)
       // Check if the category was found
       const categoryName = category ? category.name : 'Unknown Category';
       const changedAt = formatDateTime(history.changedAt);
@@ -1315,7 +1303,6 @@ async function openTaskDetailsModal(taskId) {
 }
 
 function openShareModal(taskId) {
-  console.log("Share Model Called ...")
 
   const existingModal = document.querySelector('.shared-modal');
   if (existingModal) {
@@ -1356,7 +1343,6 @@ function openShareModal(taskId) {
 
   // Close modal handler
   function closeShareModal() {
-    console.log('i am clicked ...')
     document.body.removeChild(shareModal);
     document.getElementById('overlay').style.display = 'none';
   };
@@ -1442,8 +1428,6 @@ async function handleTaskSubmit(e) {
   };
 
   if (taskId) {
-    console.log('task-id', taskId)
-    console.log('task-data', taskData)
     await updateTask(taskId, taskData);
   } else {
     await addTask(taskData);

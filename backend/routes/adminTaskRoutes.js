@@ -352,9 +352,6 @@ router.post('/import/csv', async (req, res) => {
           const priority = row[5].trim().toLowerCase();
           const completed = row[6] ? row[6].trim().toLowerCase() === 'true' : false; // Adjusted to check for completed
 
-          // Log the category ID being checked
-          console.log(`Checking category ID: "${categoryId}"`);
-
           // Create task
           const task = new Task({
             name,

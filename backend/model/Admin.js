@@ -53,7 +53,6 @@ adminSchema.statics.createDefaultAdmin = async function() {
     });
     
     await defaultAdmin.save();
-    console.log('Default admin account created');
   }
 };
 

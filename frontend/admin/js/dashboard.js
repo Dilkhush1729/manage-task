@@ -19,7 +19,6 @@ let taskStatusChart;
 // async function apiRequest(url) {
 //   // Simulate API request
 //   return new Promise(resolve => {
-//     console.log('new user creation')
 //     setTimeout(() => {
 //       let data;
 //       if (url === '/admin/users') {
@@ -248,7 +247,6 @@ function initCharts(data) {
   const taskActivityCtx = document.getElementById('task-activity-chart');
   if (taskActivityCtx && data.taskStats) {
     const dailyData = data.taskStats.dailyTaskCreation;
-    console.log('daily data : ', dailyData);
     taskActivityChart = new Chart(taskActivityCtx, {
       type: 'line',
       data: {

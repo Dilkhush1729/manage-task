@@ -75,7 +75,6 @@ let allCategories = [];
 
 async function apiRequest(url, method = 'GET', data = null) {
   let token = localStorage.getItem('adminToken');
-  console.log('page ', data);
   try {
     const options = {
       method: method,

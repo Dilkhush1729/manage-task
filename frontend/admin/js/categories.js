@@ -553,7 +553,6 @@ async function viewCategory(categoryId) {
 
     // Get category data
     const category = await apiRequest(`/admin/categories/${categoryId}`);
-    console.log('category', category)
 
     // Find user
     const user = category.user || { name: 'N/A', email: 'N/A' };
@@ -578,8 +577,6 @@ async function viewCategory(categoryId) {
 
       return taskCategoryId === categoryId;
     });
-
-    console.log('category task ', categoryTasks)
 
     // Render category details
     categoryDetailsContent.innerHTML = `

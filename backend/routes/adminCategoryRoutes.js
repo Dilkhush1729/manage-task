@@ -230,7 +230,6 @@ router.post('/import/csv', async (req, res) => {
 
     // Validate header
     const header = rows[0].split(',').map(col => col.trim());
-    console.log('Parsed Header:', header); // Log the parsed header for debugging
 
     if (header.length < 2 || header[0] !== 'Name' || header[1] !== 'Color') {
       return res.status(400).json({ message: 'Invalid CSV header format. Expected: Name,Color' });
