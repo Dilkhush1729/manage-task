@@ -73,6 +73,9 @@ let selectedTasks = new Set();
 let allUsers = [];
 let allCategories = [];
 
+// let TASK_API_URL = 'http://localhost:5000/api';
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+
 async function apiRequest(url, method = 'GET', data = null) {
   let token = localStorage.getItem('adminToken');
   try {
@@ -85,7 +88,7 @@ async function apiRequest(url, method = 'GET', data = null) {
       body: data ? JSON.stringify(data) : null,
     };
 
-    const response = await fetch(API_URL + url, options);
+    const response = await fetch(TASK_API_URL + url, options);
 
     if (!response.ok) {
       const errorData = await response.json();

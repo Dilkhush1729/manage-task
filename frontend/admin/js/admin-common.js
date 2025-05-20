@@ -16,9 +16,12 @@ const adminName = document.getElementById('admin-name');
 
 
 // Toggle the 'show' class to display or hide the user block
-userIcon.addEventListener('click', (e) => {
-  userBlock.classList.toggle('show');
-});
+if (userIcon) {
+  userIcon.addEventListener('click', (e) => {
+    userBlock.classList.toggle('show');
+  });
+}
+
 
 // Close the user block if clicked outside
 document.addEventListener('click', (event) => {
@@ -31,7 +34,7 @@ document.addEventListener('click', (event) => {
 function checkAdminAuth() {
   const token = localStorage.getItem('adminToken');
   if (!token) {
-    window.location.href = window.location.origin+'/frontend/public/main.html';
+    window.location.href = window.location.origin + '/frontend/public/main.html';
     return false;
   }
   return true;
@@ -105,7 +108,7 @@ if (darkMode) {
 function logout() {
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminData');
-  window.location.href = window.location.origin+'/frontend/public/main.html';
+  window.location.href = window.location.origin + '/frontend/public/main.html';
 }
 
 // Logout event listeners
@@ -125,8 +128,10 @@ if (dropdownLogout) {
 
 // Helper function to format date
 function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('en-US', options);
+  if (dateString) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  }
 }
 
 // Helper function to format time
@@ -143,7 +148,7 @@ function formatTime(timeString) {
 
 // Helper function for API calls
 async function apiRequest(endpoint, method = 'GET', data = null) {
-  
+
   try {
     const token = localStorage.getItem('adminToken');
 

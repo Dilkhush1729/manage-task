@@ -35,7 +35,8 @@ const closeConfirmDeleteAdmin = document.getElementById('close-confirm-delete-ad
 const cancelDeleteAdmin = document.getElementById('cancel-delete-admin');
 const confirmDeleteAdmin = document.getElementById('confirm-delete-admin');
 
-// let API_URL = '/api'; // Replace with your actual API URL
+// let API_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
 async function apiRequest(url, method = 'GET', data = null) {
   const token = localStorage.getItem('adminToken');

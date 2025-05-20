@@ -65,7 +65,8 @@ let selectedCategories = new Set();
 let allUsers = [];
 let categoryTaskCounts = {};
 
-
+// let API_URL = 'http://localhost:5000/api';
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 // Setup event listeners
 function setupEventListeners() {
   // Search input
@@ -218,33 +219,6 @@ function setupEventListeners() {
 // Mock functions (replace with your actual implementations)
 function showNotification(message, type) {
   console.log(`Notification: ${message} (Type: ${type})`);
-}
-
-async function apiRequest(url, method = 'GET', data = null) {
-  // let API_URL = '/api'; // Define API_URL here or fetch from config
-  const token = localStorage.getItem('adminToken');
-  const options = {
-    method: method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
-
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
-
-  try {
-    const response = await fetch(`${API_URL}${url}`, options);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
-  }
 }
 
 function formatDate(dateString) {

@@ -314,6 +314,7 @@ function setupEventListeners() {
   // Edit Task
   editTaskButton.addEventListener('click', () => {
     closeTaskDetailsModal();
+    showLoader();
     openTaskModal(currentTaskId);
   });
 
@@ -406,6 +407,10 @@ function showLoader() {
   setTimeout(() => {
     loader.style.visibility = 'hidden';
   }, 6050);
+}
+
+function hideLoader() {
+  loader.style.visibility = 'hidden';
 }
 
 
@@ -1026,8 +1031,11 @@ async function openTaskModal(taskId = null) {
 
     // Edit mode
     modalTitle.textContent = 'Edit Task';
-    deleteTaskButton.style.display = 'block';
-
+    if (currentView === 'shared-with-me') {
+      deleteTaskButton.style.display = 'none';
+    } else {
+      deleteTaskButton.style.display = 'block';
+    }
     // Fetch shared tasks data - example URL (adjust to your API)
     const sharedResponse = await fetch(`${API_URL}/tasks/share/shared-with-me`, {
       headers: {
@@ -1091,6 +1099,7 @@ async function openTaskModal(taskId = null) {
       taskIdInput.value = task._id;
 
     }
+    hideLoader();
   } else {
     // Create mode
     modalTitle.textContent = 'Create New Task';
@@ -1195,6 +1204,12 @@ async function openTaskDetailsModal(taskId) {
   const taskDetailsDescription = document.getElementById('task-details-description-text');
   const completeTaskButton = document.getElementById('complete-task-button');
   const shareTaskButton = document.getElementById('share_task_btn');
+
+  if (currentView === 'shared-with-me') {
+    shareTaskButton.style.display = 'none';
+  } else {
+    shareTaskButton.style.display = 'block';
+  }
 
   taskDetailsTitle.textContent = task.name;
 
@@ -2215,6 +2230,19 @@ async function fetchNotifications() {
     list.innerHTML = '';
     let unreadCount = 0;
 
+    const emptyNotification = document.getElementById('notification-list');
+    const dropdownFooter = document.getElementById('dropdown-footer');
+    if (notifications.length === 0) {
+      emptyNotification.innerHTML = '';
+      const div = document.createElement('div');
+      div.textContent = "No notifications found.";
+      div.className = 'no-notification-message';
+      emptyNotification.appendChild(div);
+      dropdownFooter.style.visibility = 'hidden';
+    } else {
+      dropdownFooter.style.visibility = 'visible';
+    }
+
     notifications.forEach(n => {
       const div = document.createElement('div');
       div.className = `notification-item ${n.read ? 'read' : 'unread'}`;
@@ -2341,6 +2369,7 @@ if (clearAllBtn) {
   clearAllBtn.addEventListener('click', async () => {
     const confirmClear = confirm('Are you sure you want to delete all notifications?');
     if (!confirmClear) return;
+    window.location.reload();
 
     try {
       const token = localStorage.getItem('token');

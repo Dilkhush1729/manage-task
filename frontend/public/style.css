@@ -1273,6 +1273,7 @@ textarea {
     display: flex !important;
     justify-content: center;
     align-items: center;
+    z-index: 10;
 }
 
 #calendar-modal {
@@ -1852,7 +1853,7 @@ textarea {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 120;
+    z-index: 10;
 }
 
 .grid-loader {
@@ -2076,6 +2077,13 @@ textarea {
     align-items: center;
 }
 
+.no-notification-message{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15%;
+}
+
 #notification-wrapper .notification-item.read {
    background-color: whitesmoke !important;
    color: #4f46e5 !important;
@@ -2144,6 +2152,7 @@ textarea {
     padding: 2px 7px;
     border-radius: 4px;
     border: 2px solid white;
+    cursor: pointer;
 }
 
 /* <!-- End notification section  --> */

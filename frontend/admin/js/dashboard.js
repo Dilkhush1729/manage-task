@@ -15,6 +15,9 @@ let taskActivityChart;
 let tasksByPriorityChart;
 let taskStatusChart;
 
+// let API_URL = 'http://localhost:5000/api';
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+
 // Mock functions (replace with your actual implementations)
 // async function apiRequest(url) {
 //   // Simulate API request
@@ -73,6 +76,51 @@ let taskStatusChart;
 //     }, 500);
 //   });
 // }
+
+async function apiRequest(url, method = 'GET', data = null) {
+  
+  try {
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const options = {
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    const response = await fetch(`${API_URL}${url}`, options);
+
+    // Handle unauthorized
+    if (response.status === 401) {
+      logout();
+      // throw new Error('Session expired. Please login again.');
+    }
+
+    // Parse JSON response
+    const result = await response.json();
+
+    // Handle error response
+    if (!response.ok) {
+      throw new Error(result.message || 'API request failed');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('API request error:', error);
+    showNotification(error.message, 'error');
+    throw error;
+  }
+}
 
 function formatNumber(number) {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");

@@ -39,6 +39,43 @@ const pageSize = 10;
 let totalUsers = 0;
 let filteredUsers = [];
 
+// let USERS_API = 'http://localhost:5000/api';
+let USERS_API = 'https://manage-task-backend-2vf9.onrender.com/api';
+
+async function apiRequest(url, method = 'GET', data = null) {
+  let token = localStorage.getItem('adminToken');
+  try {
+    const options = {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: data ? JSON.stringify(data) : null,
+    };
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+    }
+
+    // Check the content type of the response
+    const contentType = response.headers.get('Content-Type');
+    if (contentType && contentType.includes('text/csv')) {
+      // If the response is CSV, return it as text
+      return await response.text();
+    } else {
+      // Otherwise, parse it as JSON
+      return await response.json();
+    }
+  } catch (error) {
+    console.error('API request error:', error);
+    throw error;
+  }
+}
+
 // Initialize users page
 async function initUsersPage() {
   try {
@@ -55,7 +92,7 @@ async function initUsersPage() {
 // Load users
 async function loadUsers(page = 1, searchTerm = '') {
   // Get users
-  const users = await apiRequest('/admin/users');
+  const users = await apiRequest(`${USERS_API}/admin/users`);
   try {
     // Show loading
     usersTable.innerHTML = '<tr><td colspan="5" class="text-center">Loading users...</td></tr>';
@@ -88,7 +125,7 @@ async function loadUsers(page = 1, searchTerm = '') {
     
     // Get task counts for each user
     const userStats = await Promise.all(
-      paginatedUsers.map(user => apiRequest(`/admin/users/${user._id}/stats`))
+      paginatedUsers.map(user => apiRequest(`${USERS_API}/admin/users/${user._id}/stats`))
     );
     
     // Combine user data with stats
@@ -133,6 +170,13 @@ async function loadUsers(page = 1, searchTerm = '') {
   } catch (error) {
     console.error('Error loading users:', error);
     usersTable.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load users</td></tr>';
+  }
+}
+
+function formatDate(dateString) {
+  if(dateString){
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
   }
 }
 
@@ -222,10 +266,10 @@ async function viewUser(userId) {
     userDetailsContent.innerHTML = '<div class="text-center">Loading user details...</div>';
     
     // Get user data
-    const user = await apiRequest(`/admin/users/${userId}`);
+    const user = await apiRequest(`${USERS_API}/admin/users/${userId}`);
     
     // Get user stats
-    const userStats = await apiRequest(`/admin/users/${userId}/stats`);
+    const userStats = await apiRequest(`${USERS_API}/admin/users/${userId}/stats`);
     
     // Render user details
     userDetailsContent.innerHTML = `
@@ -344,7 +388,7 @@ async function openEditUserModal(userId) {
     editUserForm.reset();
     
     // Get user data
-    const user = await apiRequest(`/admin/users/${userId}`);
+    const user = await apiRequest(`${USERS_API}/admin/users/${userId}`);
     
     // Populate form
     editUserId.value = userId;
@@ -391,7 +435,7 @@ async function saveUserChanges() {
     const userData = { name, email };
     
     // Update user
-    await apiRequest(`/admin/users/${userId}`, 'PUT', userData);
+    await apiRequest(`${USERS_API}/admin/users/${userId}`, 'PUT', userData);
     
     // Reset password if provided
     if (password) {
@@ -400,7 +444,7 @@ async function saveUserChanges() {
         return;
       }
       
-      await apiRequest(`/admin/users/${userId}/reset-password`, 'POST', { newPassword: password });
+      await apiRequest(`${USERS_API}/admin/users/${userId}/reset-password`, 'POST', { newPassword: password });
     }
     
     // Close modal
@@ -421,7 +465,7 @@ async function saveUserChanges() {
 async function deleteUser(userId) {
   try {
     // Delete user
-    await apiRequest(`/admin/users/${userId}`, 'DELETE');
+    await apiRequest(`${USERS_API}/admin/users/${userId}`, 'DELETE');
     
     // Close modal
     confirmDeleteModal.classList.remove('show');
