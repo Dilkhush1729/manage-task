@@ -18,10 +18,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Allowed origins
+const allowedOrigins = [
+  'http://127.0.0.1:5500',
+  'http://localhost:5500',
+  'https://manage-task-frontend-url.onrender.com'
+];
+
 // Middleware
 app.use(cors({
-  origin: 'http://127.0.0.1:5500', // Allow requests from this origin
-  credentials: true // Allow credentials (cookies, authorization headers, etc.)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 
