@@ -72,6 +72,8 @@ let ownerCategories = [];
 let sharedTasks = [];
 let tasksSharedByMe = [];
 
+let unreadCount = 0;
+
 async function loadSharedTasks() {
   try {
     const token = localStorage.getItem('token');
@@ -838,11 +840,11 @@ function renderTasks() {
           }
 
           if (updatedTask.completed) {
-            showLoader();
+            window.location.reload()
             triggerNotification("🎉 Congratulations! You have completed your task.");
             triggerDisplayNotification("🎉 Congratulations! You have completed your task.", "warning");
           } else {
-            showLoader();
+            window.location.reload()
             triggerNotification("😔 Oops! You have undone your task.");
             triggerDisplayNotification(`😔 Oops!  You have undone [ ${updatedTask.name} ].`, "warning");
 
@@ -1024,7 +1026,6 @@ async function openTaskModal(taskId = null) {
   const taskCategorySelect = document.getElementById('task-category');
   const taskPrioritySelect = document.getElementById('task-priority');
   const taskIdInput = document.getElementById('task-id');
-
   // Reset form
   taskForm.reset();
   if (taskId) {
@@ -1052,8 +1053,9 @@ async function openTaskModal(taskId = null) {
     let sharedTasks = await sharedResponse.json();
 
     const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
+    console.log('task', task)
 
-    if (sharedTasks) {
+    if (task.sharedWith && task.sharedWith.length > 0) {
       const ownerId = task.user._id || task.user;
       try {
         const token = localStorage.getItem('token');
@@ -1087,6 +1089,14 @@ async function openTaskModal(taskId = null) {
         console.error("Error fetching owner categories:", error);
         taskCategorySelect.value = '';
       }
+    } else {
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.classList.add('categoryDropdown');
+        option.value = category._id;
+        option.textContent = category.name;
+        taskCategorySelect.appendChild(option);
+      });
     }
 
     if (task) {
@@ -2228,7 +2238,6 @@ async function fetchNotifications() {
 
     const notifications = await res.json();
     list.innerHTML = '';
-    let unreadCount = 0;
 
     const emptyNotification = document.getElementById('notification-list');
     const dropdownFooter = document.getElementById('dropdown-footer');
@@ -2369,7 +2378,6 @@ if (clearAllBtn) {
   clearAllBtn.addEventListener('click', async () => {
     const confirmClear = confirm('Are you sure you want to delete all notifications?');
     if (!confirmClear) return;
-    window.location.reload();
 
     try {
       const token = localStorage.getItem('token');
@@ -2377,6 +2385,8 @@ if (clearAllBtn) {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
+      unreadCount = 0;
+      badge.textContent = unreadCount;
       fetchNotifications();
     } catch (err) {
       console.error('Error clearing notifications:', err);
