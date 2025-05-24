@@ -1115,7 +1115,13 @@ async function openTaskModal(taskId = null) {
     modalTitle.textContent = 'Create New Task';
     deleteTaskButton.style.display = 'none';
     taskIdInput.value = '';
-
+    categories.forEach(category => {
+      const option = document.createElement('option');
+      option.classList.add('categoryDropdown');
+      option.value = category._id;
+      option.textContent = category.name;
+      taskCategorySelect.appendChild(option);
+    });
     // Set default due date to today
     dueDateInput.value = getTodayDate();
   }
