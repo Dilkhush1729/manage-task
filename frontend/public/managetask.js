@@ -1053,7 +1053,7 @@ async function openTaskModal(taskId = null) {
     let sharedTasks = await sharedResponse.json();
 
     const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
-    console.log('task', task)
+
 
     if (task.sharedWith && task.sharedWith.length > 0) {
       const ownerId = task.user._id || task.user;
