@@ -34,7 +34,10 @@
                     </button>
                     <div id="notificationModal" style="display: none;">
                         <div id="notification-dropdown" class="dropdown hidden">
-                            <div class="notification-head"><h4>Notifications</h4> <h4 id="close-notification">x</h4></div>
+                            <div class="notification-head">
+                                <h4>Notifications</h4>
+                                <h4 id="close-notification">x</h4>
+                            </div>
                             <div id="notification-list"></div>
                             <div class="dropdown-footer" id="dropdown-footer">
                                 <button id="clear-all-btn">Clear All</button>
@@ -421,7 +424,7 @@
             <button id="cancel-btn">Cancel</button>
         </div>
     </div>
-    
+
     <!-- Calendar Modal  -->
     <div id="calendar-div" style="display:none;">
         <div id="calendar-modal">
@@ -443,9 +446,14 @@
             <div></div>
             <div></div>
         </div>
-
+        
     </div>
-      
+
+    <!-- <div class="loader-background" id="bar_loader" style="visibility: hidden;">
+        <img src="../image/To Do List (1).gif" alt="">
+    </div> -->
+
+
 
     <script>
         // Check if user is logged in before loading main script
@@ -462,7 +470,7 @@
                     const accountEmail = document.getElementById('account-email');
                     const username = document.getElementById('username');
                     const userEmail = document.getElementById('user-email');
-                    
+
                     if (userInitial) userInitial.textContent = user.name.charAt(0).toUpperCase();
                     if (accountName) accountName.textContent = user.name;
                     if (accountEmail) accountEmail.textContent = user.email;

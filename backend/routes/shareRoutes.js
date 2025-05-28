@@ -42,9 +42,7 @@ router.post('/:taskId', auth, async (req, res) => {
       access,
       status: recipient ? 'accepted' : 'pending',
       token: require('crypto').randomBytes(20).toString('hex'),
-      sharedAt: new Date(),
-      category,
-      categoryHistory
+      sharedAt: new Date()
     });
 
     await task.save();
