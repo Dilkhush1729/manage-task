@@ -12,6 +12,7 @@ const adminCategoryRoutes = require('./routes/adminCategoryRoutes.js');
 const Admin = require('./model/Admin.js');
 const shareRoutes = require('./routes/shareRoutes.js');
 const notificationRoutes = require('./routes/notificationRoutes.js');
+const path = require('path');
 
 dotenv.config();
 
@@ -42,6 +43,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
@@ -63,8 +75,6 @@ app.use('/api/admin/tasks', adminTaskRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/tasks/share', shareRoutes);
 
-// Serve static files (your frontend)
-app.use(express.static('public'));
 
 // Start server
 app.listen(PORT, () => {
