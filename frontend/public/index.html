@@ -285,6 +285,9 @@
                     <button id="close-details-modal" class="close-button">
                         <i class="fas fa-times"></i>
                     </button>
+                    <button class="btn btn-chat" id="chat-btn">
+                        <i class="fas fa-comments"></i> Chat
+                    </button>
                 </div>
             </div>
             <div class="modal-body">
@@ -446,12 +449,37 @@
             <div></div>
             <div></div>
         </div>
-        
+
     </div>
 
     <!-- <div class="loader-background" id="bar_loader" style="visibility: hidden;">
         <img src="../image/To Do List (1).gif" alt="">
     </div> -->
+
+    <div id="chat-modal" style="display: none;">
+        <div class="modal-content">
+            <div id="task-chat-container">
+                <div class="task-chat-head">
+                    <h3 id="task_header">Task Chat</h3>
+                    <span id="closeChatModal">x</span>
+                </div>
+
+                <div id="chat-messages">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Type a message" />
+                    <button id="send-chat-button" title="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
 
 
 

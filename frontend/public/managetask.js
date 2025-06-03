@@ -32,6 +32,7 @@ const dropdownContent = document.querySelector('.dropdown-content');
 const sortOptions = document.querySelectorAll('.dropdown-content a');
 const deleteConfirmationModal = document.getElementById("confirmationModal");
 const notificationModal = document.getElementById("notificationModal");
+const chatModal = document.getElementById("chat-modal");
 const taskContentContainer = document.getElementById('calendar-grid');
 const enableCalendarView = document.getElementById('calendar-view-enable');
 const userAvatar = document.querySelector('.user-avatar');
@@ -50,7 +51,14 @@ const badge = document.getElementById('notification-count');
 const markAllBtn = document.getElementById('mark-all-read');
 const clearAllBtn = document.getElementById('clear-all-btn');
 
+const chatMessagesContainer = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const sendChatButton = document.getElementById('send-chat-button');
+const chatBtn = document.getElementById('chat-btn');
+const closeChatBtn = document.getElementById('closeChatModal');
+
 notificationModal.style.visibility = 'hidden';
+chatModal.style.visibility = 'hidden';
 
 // API Base URL - Change this to your backend URL
 // let API_URL = 'http://localhost:5000/api';
@@ -1264,7 +1272,6 @@ async function openTaskDetailsModal(taskId) {
     }
   }
 
-
   const currentCategory = categories.find(cat => cat._id === task.category) || ownerCategories.find(cat => cat._id === task.category) || { name: 'Not Assigned' };
 
   taskDetailsCategory.innerHTML = `Category : <span class="category-color"></span> ${currentCategory.name}`;
@@ -1276,6 +1283,7 @@ async function openTaskDetailsModal(taskId) {
   } else {
     categoryHistorydiv.style.display = 'block';
   }
+  loadChatMessages(currentTaskId);
 
   // share task button
   shareTaskButton.addEventListener('click', () => {
@@ -1331,6 +1339,118 @@ async function openTaskDetailsModal(taskId) {
 
   taskDetailsModal.style.display = 'block';
   overlay.style.display = 'block';
+}
+
+chatBtn.addEventListener('click', () => {
+  chatModal.style.visibility = 'visible';
+  taskDetailsModal.style.display = 'none';
+  overlay.style.display = 'none';
+})
+closeChatBtn.addEventListener('click', () => {
+  chatModal.style.visibility = 'hidden';
+})
+
+async function loadChatMessages(taskId) {
+  debugger;
+  let user = JSON.parse(localStorage.getItem('user'));
+  let userId = user.id;
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/chat/${taskId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const messages = await response.json();
+
+      chatMessagesContainer.innerHTML = messages.map(msg => `
+        <div id="chat-${msg._id}" style="margin-bottom: 10px;">
+        <div class="chat-header">
+          <strong>${msg.userId.name}:</strong>
+          ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''} 
+        </div>
+          <div class="chat-time">
+            <span>${msg.message}</span>
+            <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
+          </div>
+        </div>
+      `).join('');
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+      const deleteChatButtons = document.querySelectorAll('.delete-chat-message');
+      deleteChatButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+          debugger
+          const messageId = e.currentTarget.dataset.messageId;
+          if (messageId) {
+            deleteChatMessage(messageId);
+          }
+        });
+      });
+    } else {
+      console.error('Failed to load chat messages');
+    }
+  } catch (error) {
+    console.error('Error loading chat messages:', error);
+  }
+
+  sendChatButton.addEventListener('click', () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    sendChatMessage(taskId, userId, message);
+    chatInput.value = '';  // clear input
+  });
+}
+
+
+async function deleteChatMessage(messageId) {
+  debugger
+  const confirmed = confirm('Are you sure you want to delete this message?');
+  if (!confirmed) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/chat/${messageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        // You can add Authorization here if using JWT
+      }
+    });
+
+    if (response.ok) {
+      document.getElementById(`chat-${messageId}`).remove();
+    } else {
+      console.error('Failed to delete message');
+    }
+  } catch (error) {
+    console.error('Error deleting message:', error);
+  }
+}
+
+
+
+async function sendChatMessage(taskId, userId, message) {
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/chat/${taskId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ userId, message })
+    });
+
+    if (response.ok) {
+      loadChatMessages(taskId);
+    } else {
+      console.error('Failed to send message');
+    }
+  } catch (error) {
+    console.error('Error sending chat message:', error);
+  }
 }
 
 function openShareModal(taskId) {

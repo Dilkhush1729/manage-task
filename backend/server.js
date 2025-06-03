@@ -13,6 +13,7 @@ const Admin = require('./model/Admin.js');
 const shareRoutes = require('./routes/shareRoutes.js');
 const notificationRoutes = require('./routes/notificationRoutes.js');
 const path = require('path');
+const taskChatRoutes = require('./routes/taskChatRoutes.js');
 
 dotenv.config();
 
@@ -74,6 +75,8 @@ app.use('/api/admin/users', adminUserRoutes);
 app.use('/api/admin/tasks', adminTaskRoutes);
 app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/tasks/share', shareRoutes);
+app.use('/api/chat', taskChatRoutes);
+
 
 
 // Start server
