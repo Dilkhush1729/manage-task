@@ -1213,7 +1213,6 @@ function formatDateTime(dateString) {
 }
 
 async function openTaskDetailsModal(taskId) {
-  // debugger;
   currentTaskId = taskId;
   const task = tasks.find(task => task._id === taskId) || sharedTasks.find(task => task._id === taskId);
 
@@ -1351,7 +1350,6 @@ closeChatBtn.addEventListener('click', () => {
 })
 
 async function loadChatMessages(taskId) {
-  debugger;
   let user = JSON.parse(localStorage.getItem('user'));
   let userId = user.id;
   try {
@@ -1379,7 +1377,6 @@ async function loadChatMessages(taskId) {
       const deleteChatButtons = document.querySelectorAll('.delete-chat-message');
       deleteChatButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
-          debugger
           const messageId = e.currentTarget.dataset.messageId;
           if (messageId) {
             deleteChatMessage(messageId);
@@ -1404,7 +1401,6 @@ async function loadChatMessages(taskId) {
 
 
 async function deleteChatMessage(messageId) {
-  debugger
   const confirmed = confirm('Are you sure you want to delete this message?');
   if (!confirmed) return;
 
