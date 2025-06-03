@@ -1,69 +1,41 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const taskRoutes = require('./routes/taskRoutes.js');
-const categoryRoutes = require('./routes/categoryRoutes.js');
-const authRoutes = require('./routes/authRoutes.js');
-const adminRoutes = require('./routes/adminRoutes.js');
-const adminUserRoutes = require('./routes/adminUserRoutes.js');
-const adminTaskRoutes = require('./routes/adminTaskRoutes.js');
-const adminCategoryRoutes = require('./routes/adminCategoryRoutes.js');
-const Admin = require('./model/Admin.js');
-const shareRoutes = require('./routes/shareRoutes.js');
-const notificationRoutes = require('./routes/notificationRoutes.js');
 const path = require('path');
-const taskChatRoutes = require('./routes/taskChatRoutes.js');
+
+const connectDB = require('./config/db');
+const corsOptions = require('./middleware/corsConfig');
+
+// Route imports
+const authRoutes = require('./routes/authRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const adminUserRoutes = require('./routes/adminUserRoutes');
+const adminTaskRoutes = require('./routes/adminTaskRoutes');
+const adminCategoryRoutes = require('./routes/adminCategoryRoutes');
+const shareRoutes = require('./routes/shareRoutes');
+const taskChatRoutes = require('./routes/taskChatRoutes');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Allowed origins
-const allowedOrigins = [
-  'http://127.0.0.1:5500',
-  'http://localhost:5500',
-  'http://127.0.0.1:5501',
-  'http://localhost:5501',
-  'https://manage-task-frontend-url.onrender.com',
-  'https://task-flow-24mp.onrender.com'
-];
+// Connect to MongoDB
+connectDB();
 
 // Middleware
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
+    if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+    if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
   }
 }));
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(async () => {
-    console.log('Connected to MongoDB');
-
-    // Create default admin if none exists
-    await Admin.createDefaultAdmin();
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);

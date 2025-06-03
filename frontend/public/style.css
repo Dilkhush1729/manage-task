@@ -1263,7 +1263,7 @@ textarea {
 }
 
 /* calendar integration  */
-#calendar-div {
+#calendar-div,#chat-modal {
     position: fixed;
     top: 0;
     left: 0;
