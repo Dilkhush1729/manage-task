@@ -1,6 +1,6 @@
 // API Base URL
-let API_URL = 'http://localhost:5000/api';
-// let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+// let API_URL = 'http://localhost:5000/api';
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
 // DOM Elements
 const adminLoginForm = document.getElementById('admin-login-form');
