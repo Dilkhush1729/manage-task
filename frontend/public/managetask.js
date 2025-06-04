@@ -1228,6 +1228,8 @@ async function openTaskDetailsModal(taskId) {
   const taskDetailsDescription = document.getElementById('task-details-description-text');
   const completeTaskButton = document.getElementById('complete-task-button');
   const shareTaskButton = document.getElementById('share_task_btn');
+  const TaskInfo = document.getElementById('info-text');
+  // TaskInfo.setAttribute('title', '');
 
   if (currentView === 'shared-with-me') {
     shareTaskButton.style.display = 'none';
@@ -1236,6 +1238,9 @@ async function openTaskDetailsModal(taskId) {
   }
 
   taskDetailsTitle.textContent = task.name;
+  // chatHeader.textContent = task.name;
+  TaskInfo.setAttribute('title', `Task Name : ${task.name}`);
+
 
   if (task.createdAt) {
     taskCreatedDate.textContent = `Created At : ${formatDateTime(task.createdAt)}`;
@@ -1283,7 +1288,7 @@ async function openTaskDetailsModal(taskId) {
   } else {
     categoryHistorydiv.style.display = 'block';
   }
-  loadChatMessages(currentTaskId);
+  loadChatMessages(taskId);
 
   // share task button
   shareTaskButton.addEventListener('click', () => {
@@ -1346,9 +1351,6 @@ chatBtn.addEventListener('click', () => {
   taskDetailsModal.style.display = 'none';
   overlay.style.display = 'none';
 })
-closeChatBtn.addEventListener('click', () => {
-  chatModal.style.visibility = 'hidden';
-})
 
 async function loadChatMessages(taskId) {
   let user = JSON.parse(localStorage.getItem('user'));
@@ -1363,19 +1365,27 @@ async function loadChatMessages(taskId) {
     if (response.ok) {
       const messages = await response.json();
 
-      chatMessagesContainer.innerHTML = messages.map(msg => `
-        <div id="chat-${msg._id}" style="margin-bottom: 10px;">
+      chatMessagesContainer.innerHTML = messages.map(msg => {
+        const isUser = msg.userId._id === userId;
+        return `
+    <div id="chat-${msg._id}" class="chat-message-wrapper ${isUser ? 'my-message' : 'other-message'}">
+      <div class="chat-bubble">
         <div class="chat-header">
-          <strong>${msg.userId.name}:</strong>
-          ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''} 
+          ${isUser ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
+          <strong>${msg.userId.name}</strong>
+          ${isUser ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
         </div>
-          <div class="chat-time">
-            <span>${msg.message}</span>
-            <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
-          </div>
+        <div class="chat-time">
+          <span>${msg.message}</span>
+          <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
         </div>
-      `).join('');
+      </div>
+    </div>
+  `;
+      }).join('');
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+
       const deleteChatButtons = document.querySelectorAll('.delete-chat-message');
       deleteChatButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
@@ -1392,6 +1402,21 @@ async function loadChatMessages(taskId) {
     console.error('Error loading chat messages:', error);
   }
 
+  if (document.getElementById('delete-selected')) {
+    document.getElementById('delete-selected').addEventListener('click', () => {
+      const selected = [...document.querySelectorAll('.chat-select:checked')]
+        .map(el => el.dataset.id);
+
+      if (selected.length === 0) {
+        alert('Please select messages to delete.');
+        return;
+      }
+
+      bulkDeleteMessages(selected);
+    });
+  }
+
+
   sendChatButton.addEventListener('click', () => {
     const message = chatInput.value.trim();
     if (!message) return;
@@ -1400,6 +1425,11 @@ async function loadChatMessages(taskId) {
     sendMessageToRoom(message, taskId);
     chatInput.value = '';  // clear input
   });
+
+  closeChatBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    chatModal.style.visibility = 'hidden';
+  })
 }
 
 
@@ -1419,8 +1449,7 @@ async function deleteChatMessage(messageId) {
 
     if (response.ok) {
       // Emit to others
-      const deletedMessage = await response.json(); // Assume it returns { _id, taskId }
-      console.log('Message deleted:', deletedMessage);
+      const deletedMessage = await response.json(); 
       socket.emit('deleteMessage', deletedMessage); // send to room
       // Remove from own UI
       document.getElementById(`chat-${messageId}`)?.remove();
@@ -1431,6 +1460,36 @@ async function deleteChatMessage(messageId) {
     console.error('Error deleting message:', error);
   }
 }
+
+async function bulkDeleteMessages(messageIds) {
+  const confirmed = confirm(`Delete ${messageIds.length} messages?`);
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`${API_URL}/chat/bulk-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageIds }),
+    });
+
+    if (response.ok) {
+      const result = await response.json(); // { deletedIds, taskId }
+
+      // Remove from DOM
+      result.deletedIds.forEach(id => {
+        document.getElementById(`chat-${id}`)?.remove();
+      });
+
+      // Emit socket event
+      socket.emit('bulkDeleteMessage', result); // Optional, for real-time sync
+    } else {
+      console.error('Failed to bulk delete messages');
+    }
+  } catch (error) {
+    console.error('Error during bulk delete:', error);
+  }
+}
+
 
 
 
@@ -1501,6 +1560,13 @@ socket.on('messageDeleted', (messageId) => {
   if (msgEl) msgEl.remove();
 });
 
+socket.on('bulkMessageDeleted', (deletedIds) => {
+  deletedIds.forEach(id => {
+    document.getElementById(`chat-${id}`)?.remove();
+  });
+});
+
+
 // Listen for new messages
 function renderMessage(msg) {
   let user = JSON.parse(localStorage.getItem('user'));
@@ -1509,15 +1575,24 @@ function renderMessage(msg) {
   const div = document.createElement('div');
   div.id = `chat-${msg._id}`;
   div.style.marginBottom = '10px';
+  div.classList.add('chat-message-wrapper');
+  if (msg.userId._id === userId) {
+    div.classList.add('my-message');
+  } else {
+    div.classList.add('other-message');
+  }
 
   div.innerHTML = `
-    <div class="chat-header">
-      <strong>${msg.userId.name}:</strong>
-      ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
-    </div>
-    <div class="chat-time">
-      <span>${msg.message}</span>
-      <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
+    <div class="chat-bubble">
+      <div class="chat-header">
+        ${msg.userId._id === userId ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
+        <strong>${msg.userId.name}:</strong>
+        ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
+      </div>
+      <div class="chat-time">
+        <span>${msg.message}</span>
+        <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
+      </div>
     </div>
   `;
 

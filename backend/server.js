@@ -84,6 +84,11 @@ io.on('connection', (socket) => {
     socket.to(taskId).emit('messageDeleted', _id);
   });
 
+  socket.on('bulkDeleteMessage', ({ deletedIds, taskId }) => {
+    socket.to(taskId).emit('bulkMessageDeleted', deletedIds);
+  });
+
+
 
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);

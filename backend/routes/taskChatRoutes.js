@@ -2,6 +2,41 @@ const express = require('express');
 const router = express.Router();
 const ChatMessage = require('../model/taskChat');
 
+router.post('/bulk-delete', async (req, res) => {
+    const messageIds = req.body.messageIds;
+
+    try {
+        const deletedMessages = [];
+
+        for (const messageId of messageIds) {
+            const message = await ChatMessage.findById(messageId);
+
+            if (!message) {
+                continue; // Skip if not found
+            }
+
+            // Optional: check if user is authorized to delete
+            // if (message.userId.toString() !== req.body.userId) {
+            //     continue;
+            // }
+
+            await ChatMessage.findByIdAndDelete(messageId);
+
+            // Push the deleted info to return
+            deletedMessages.push({ _id: message._id, taskId: message.taskId });
+        }
+
+        return res.status(200).json({
+            deletedIds: deletedMessages.map(m => m._id),
+            taskId: deletedMessages.length > 0 ? deletedMessages[0].taskId : null
+        });
+
+    } catch (err) {
+        console.error('Error deleting chat messages:', err);
+        return res.status(500).json({ error: 'Failed to delete messages' });
+    }
+});
+
 // GET messages for a specific task
 router.get('/:taskId', async (req, res) => {
     try {
