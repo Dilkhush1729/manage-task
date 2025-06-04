@@ -1418,7 +1418,12 @@ async function deleteChatMessage(messageId) {
     });
 
     if (response.ok) {
-      document.getElementById(`chat-${messageId}`).remove();
+      // Emit to others
+      const deletedMessage = await response.json(); // Assume it returns { _id, taskId }
+      console.log('Message deleted:', deletedMessage);
+      socket.emit('deleteMessage', deletedMessage); // send to room
+      // Remove from own UI
+      document.getElementById(`chat-${messageId}`)?.remove();
     } else {
       console.error('Failed to delete message');
     }
@@ -1489,6 +1494,11 @@ function generateUniqueId() {
 
 socket.on('receiveMessage', (message) => {
   renderMessage(message); // Now this will work ✅
+});
+
+socket.on('messageDeleted', (messageId) => {
+  const msgEl = document.getElementById(`chat-${messageId}`);
+  if (msgEl) msgEl.remove();
 });
 
 // Listen for new messages

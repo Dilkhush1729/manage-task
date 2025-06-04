@@ -48,7 +48,9 @@ router.delete('/:messageId', async (req, res) => {
         // }
 
         await ChatMessage.findByIdAndDelete(req.params.messageId);
-        res.status(200).json({ message: 'Message deleted successfully' });
+        
+        // Return _id and taskId for socket event
+        res.status(200).json({ _id: message._id, taskId: message.taskId });
     } catch (err) {
         console.error('Error deleting chat message:', err);
         res.status(500).json({ error: 'Failed to delete message' });

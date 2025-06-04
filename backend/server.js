@@ -76,6 +76,14 @@ io.on('connection', (socket) => {
     socket.to(data.taskId).emit('receiveMessage', data);
   });
 
+  socket.on('deleteMessage', (data) => {
+    const { _id, taskId } = data;
+    console.log(`Deleting message ${_id} in room ${taskId}`);
+
+    // Notify others in the room to remove it
+    socket.to(taskId).emit('messageDeleted', _id);
+  });
+
 
   socket.on('disconnect', () => {
     console.log('Socket disconnected:', socket.id);
