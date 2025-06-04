@@ -63,8 +63,8 @@ chatModal.style.visibility = 'hidden';
 // API Base URL - Change this to your backend URL
 // let API_URL = 'http://localhost:5000/api';
 // const socket = io('http://localhost:5000');
-const socket = io('https://manage-task-backend-2vf9.onrender.com');
-let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+const socket = io('https://manage-task-backend-2vf9.onrender.com') ;
+let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api' ;
 
 // State
 let tasks = [];
