@@ -61,9 +61,10 @@ notificationModal.style.visibility = 'hidden';
 chatModal.style.visibility = 'hidden';
 
 // API Base URL - Change this to your backend URL
-// let API_URL = 'http://localhost:5000/api';
-
-let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+let API_URL = 'http://localhost:5000/api';
+// const socket = io('http://localhost:5000');
+const socket = io('https://manage-task-backend-2vf9.onrender.com');
+// let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
 // State
 let tasks = [];
@@ -1352,6 +1353,7 @@ closeChatBtn.addEventListener('click', () => {
 async function loadChatMessages(taskId) {
   let user = JSON.parse(localStorage.getItem('user'));
   let userId = user.id;
+  socket.emit('joinTaskRoom', taskId);
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/chat/${taskId}`, {
@@ -1394,7 +1396,8 @@ async function loadChatMessages(taskId) {
     const message = chatInput.value.trim();
     if (!message) return;
 
-    sendChatMessage(taskId, userId, message);
+    // sendChatMessage(taskId, userId, message);
+    sendMessageToRoom(message, taskId);
     chatInput.value = '';  // clear input
   });
 }
@@ -1440,7 +1443,8 @@ async function sendChatMessage(taskId, userId, message) {
     });
 
     if (response.ok) {
-      loadChatMessages(taskId);
+      // socket.emit('joinTaskRoom', taskId);
+      renderMessage(message);
     } else {
       console.error('Failed to send message');
     }
@@ -1448,6 +1452,79 @@ async function sendChatMessage(taskId, userId, message) {
     console.error('Error sending chat message:', error);
   }
 }
+
+// Send message
+async function sendMessageToRoom(messageText, taskId) {
+  let user = JSON.parse(localStorage.getItem('user'));
+  const userId = user.id;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/chat/${taskId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ userId, message: messageText })
+    });
+
+    if (response.ok) {
+      const newMessage = await response.json();
+      socket.emit('sendMessage', newMessage);
+      // loadChatMessages(taskId);
+      renderMessage(newMessage);
+    } else {
+      console.error('Failed to send message');
+    }
+  } catch (error) {
+    console.error('Error sending chat message:', error);
+  }
+}
+
+
+function generateUniqueId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+
+socket.on('receiveMessage', (message) => {
+  renderMessage(message); // Now this will work ✅
+});
+
+// Listen for new messages
+function renderMessage(msg) {
+  let user = JSON.parse(localStorage.getItem('user'));
+  const userId = user.id;
+
+  const div = document.createElement('div');
+  div.id = `chat-${msg._id}`;
+  div.style.marginBottom = '10px';
+
+  div.innerHTML = `
+    <div class="chat-header">
+      <strong>${msg.userId.name}:</strong>
+      ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
+    </div>
+    <div class="chat-time">
+      <span>${msg.message}</span>
+      <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
+    </div>
+  `;
+
+  chatMessagesContainer.appendChild(div);
+  chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+  // Attach delete event
+  const deleteBtn = div.querySelector('.delete-chat-message');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      deleteChatMessage(msg._id);
+    });
+  }
+}
+
+
+
 
 function openShareModal(taskId) {
 

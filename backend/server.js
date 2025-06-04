@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const http = require('http'); // 👈 Add this
+const { Server } = require('socket.io'); // 👈 Add this
 
 const connectDB = require('./config/db');
 const corsOptions = require('./middleware/corsConfig');
@@ -19,12 +21,21 @@ const shareRoutes = require('./routes/shareRoutes');
 const taskChatRoutes = require('./routes/taskChatRoutes');
 
 dotenv.config();
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-connectDB();
+// Create HTTP server and bind to express app
+const server = http.createServer(app);
+
+// Initialize Socket.IO server
+const io = new Server(server, {
+  cors: {
+    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+    credentials: true
+  }
+});
 
 // Middleware
 app.use(cors(corsOptions));
@@ -49,10 +60,30 @@ app.use('/api/admin/categories', adminCategoryRoutes);
 app.use('/api/tasks/share', shareRoutes);
 app.use('/api/chat', taskChatRoutes);
 
+// Socket.IO logic 👇
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.connected);
+  console.log('Socket connected:', socket.id);
 
+  socket.on('joinTaskRoom', (taskId) => {
+    socket.join(taskId);
+    console.log(`User ${socket.id} joined room ${taskId}`);
+  });
+
+  socket.on('sendMessage', (data) => {
+    console.log('Message received:', data);
+    // This sends to everyone *except* sender
+    socket.to(data.taskId).emit('receiveMessage', data);
+  });
+
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected:', socket.id);
+  });
+});
 
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
