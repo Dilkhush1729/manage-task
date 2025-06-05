@@ -2190,6 +2190,7 @@ textarea {
 }
 
 #chat-modal .modal-content {
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
     max-height: 640px;
