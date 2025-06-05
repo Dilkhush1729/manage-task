@@ -31,10 +31,7 @@ const server = http.createServer(app);
 
 // Initialize Socket.IO server
 const io = new Server(server, {
-  cors: {
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500','https://manage-task-backend-2vf9.onrender.com'],
-    credentials: true
-  }
+  cors: corsOptions 
 });
 
 // Middleware

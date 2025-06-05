@@ -1,6 +1,6 @@
 const corsOptions = {
   origin: '*', // Allow all origins
-  credentials: true
+  credentials: flase
 };
 
 module.exports = corsOptions;
