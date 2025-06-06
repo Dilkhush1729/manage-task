@@ -1352,6 +1352,8 @@ chatBtn.addEventListener('click', () => {
   overlay.style.display = 'none';
 })
 
+let bulkDeleteMode = false;
+
 async function loadChatMessages(taskId) {
   let user = JSON.parse(localStorage.getItem('user'));
   let userId = user.id;
@@ -1368,33 +1370,60 @@ async function loadChatMessages(taskId) {
       chatMessagesContainer.innerHTML = messages.map(msg => {
         const isUser = msg.userId._id === userId;
         return `
-    <div id="chat-${msg._id}" class="chat-message-wrapper ${isUser ? 'my-message' : 'other-message'}">
-      <div class="chat-bubble">
-        <div class="chat-header">
-          ${isUser ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
-          <strong>${msg.userId.name}</strong>
-          ${isUser ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
-        </div>
-        <div class="chat-time">
-          <span>${msg.message}</span>
-          <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
-        </div>
-      </div>
-    </div>
-  `;
+          <div id="chat-${msg._id}" class="chat-message-wrapper ${isUser ? 'my-message' : 'other-message'}">
+            <div class="chat-bubble">
+              <div class="chat-header">
+                ${isUser && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
+                <strong>${msg.userId.name}</strong>
+                ${isUser ? `
+                  <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
+                    <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;">⋮</button>
+                    <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
+                      <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;border-bottom: 2px solid #4f46e521;">Delete Chat</a>
+                      <a href="#" class="toggle-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="chat-time">
+                <span>${msg.message}</span>
+                <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
+              </div>
+            </div>
+          </div>
+        `;
       }).join('');
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 
-
-      const deleteChatButtons = document.querySelectorAll('.delete-chat-message');
-      deleteChatButtons.forEach(button => {
-        button.addEventListener('click', async (e) => {
-          const messageId = e.currentTarget.dataset.messageId;
-          if (messageId) {
-            deleteChatMessage(messageId);
-          }
+      // === Dropdown Toggle
+      document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+          const menu = toggle.nextElementSibling;
+          document.querySelectorAll('.dropdown-menu').forEach(m => {
+            if (m !== menu) m.style.display = 'none';
+          });
+          menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         });
       });
+
+      // === Single Delete
+      document.querySelectorAll('.delete-chat-single').forEach(link => {
+        link.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const id = link.dataset.id;
+          if (id) deleteChatMessage(id);
+        });
+      });
+
+      // === Bulk Delete Toggle (Dropdown)
+      document.querySelectorAll('.toggle-bulk-delete').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          bulkDeleteMode = !bulkDeleteMode;
+          loadChatMessages(taskId);
+        });
+      });
+
     } else {
       console.error('Failed to load chat messages');
     }
@@ -1402,34 +1431,67 @@ async function loadChatMessages(taskId) {
     console.error('Error loading chat messages:', error);
   }
 
-  if (document.getElementById('delete-selected')) {
-    document.getElementById('delete-selected').addEventListener('click', () => {
-      const selected = [...document.querySelectorAll('.chat-select:checked')]
-        .map(el => el.dataset.id);
+  // === Bulk Delete Button (main button outside)
+  const deleteBtn = document.getElementById('delete-selected');
 
-      if (selected.length === 0) {
-        alert('Please select messages to delete.');
-        return;
+  if (deleteBtn) {
+    // Remove previous event listeners to avoid stacking
+    const newBtn = deleteBtn.cloneNode(true);
+    deleteBtn.parentNode.replaceChild(newBtn, deleteBtn);
+
+    newBtn.addEventListener('click', () => {
+      if (!bulkDeleteMode) {
+        bulkDeleteMode = true;
+        // loadChatMessages(taskId);
+      } else {
+        const selected = [...document.querySelectorAll('.chat-select:checked')].map(el => el.dataset.id);
+        if (selected.length === 0) {
+          // If no messages selected, disable mode
+          bulkDeleteMode = false;
+          alert('Please select messages to delete.');
+          return;
+          // loadChatMessages(taskId);
+        } else {
+          bulkDeleteMessages(selected);
+        }
       }
-
-      bulkDeleteMessages(selected);
     });
   }
 
+  // === Send Button (deduplicated listener)
+  const newSendBtn = sendChatButton.cloneNode(true);
+  if (newSendBtn && sendChatButton && sendChatButton.parentNode) {
+    sendChatButton.parentNode.replaceChild(newSendBtn, sendChatButton);
+  }
 
-  sendChatButton.addEventListener('click', () => {
+  newSendBtn.addEventListener('click', () => {
     const message = chatInput.value.trim();
     if (!message) return;
-
-    // sendChatMessage(taskId, userId, message);
     sendMessageToRoom(message, taskId);
-    chatInput.value = '';  // clear input
+    chatInput.value = '';
   });
 
-  closeChatBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    chatModal.style.visibility = 'hidden';
-  })
+  // Listen for Enter key on chat input
+  chatInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Optional: prevents new line in input, if it's a textarea
+      const message = chatInput.value.trim();
+      if (!message) return;
+      sendMessageToRoom(message, taskId);
+      chatInput.value = '';
+    }
+  });
+
+  // === Close Chat Modal
+  if (closeChatBtn && closeChatBtn.parentNode) {
+    const newCloseBtn = closeChatBtn.cloneNode(true);
+    closeChatBtn.parentNode.replaceChild(newCloseBtn, closeChatBtn);
+
+    newCloseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      chatModal.style.visibility = 'hidden';
+    });
+  }
 }
 
 
@@ -1480,10 +1542,13 @@ async function bulkDeleteMessages(messageIds) {
         document.getElementById(`chat-${id}`)?.remove();
       });
 
+      triggerNotification(` ${result.deletedIds.length} Message Deleted successfully!`);
+
       // Emit socket event
       socket.emit('bulkDeleteMessage', result); // Optional, for real-time sync
     } else {
       console.error('Failed to bulk delete messages');
+      triggerNotification('Failed to bulk delete messages')
     }
   } catch (error) {
     console.error('Error during bulk delete:', error);
@@ -1585,9 +1650,17 @@ function renderMessage(msg) {
   div.innerHTML = `
     <div class="chat-bubble">
       <div class="chat-header">
-        ${msg.userId._id === userId ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
+        ${msg.userId._id === userId && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
         <strong>${msg.userId.name}:</strong>
-        ${msg.userId._id === userId ? `<button data-message-id="${msg._id}" class="delete-chat-message"><i class="fa-solid fa-trash" style="color: #ec1818;"></i></button>` : ''}
+        ${msg.userId._id === userId ? `
+          <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
+            <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;">⋮</button>
+            <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
+              <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: black;border-bottom: 2px solid #4f46e521;text-align:center;color: #4f46e5;">Delete Chat</a>
+              <a href="#" class="enable-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: black; text-align:center; color: #4f46e5;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
+            </div>
+          </div>
+        ` : ''}
       </div>
       <div class="chat-time">
         <span>${msg.message}</span>
@@ -1597,16 +1670,58 @@ function renderMessage(msg) {
   `;
 
   chatMessagesContainer.appendChild(div);
-  chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+  // SCROLL TO BOTTOM with smooth behavior
+  chatMessagesContainer.scrollTo({
+    top: chatMessagesContainer.scrollHeight,
+    behavior: 'smooth'
+  });
 
   // Attach delete event
   const deleteBtn = div.querySelector('.delete-chat-message');
   if (deleteBtn) {
-    deleteBtn.addEventListener('click', () => {
+    // Fix: clone to avoid duplicate listener
+    const newBtn = deleteBtn.cloneNode(true);
+    deleteBtn.parentNode.replaceChild(newBtn, deleteBtn);
+
+    newBtn.addEventListener('click', () => {
       deleteChatMessage(msg._id);
     });
   }
+
+  // === Attach dropdown toggle ===
+  const toggleBtn = div.querySelector('.dropdown-toggle');
+  if (toggleBtn) {
+    const menu = toggleBtn.nextElementSibling;
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.dropdown-menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+      });
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+  }
+
+  // === Handle single delete in dropdown ===
+  const deleteLink = div.querySelector('.delete-chat-single');
+  if (deleteLink) {
+    deleteLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteChatMessage(msg._id);
+    });
+  }
+
+  // === Handle Bulk Delete toggle ===
+  const bulkToggle = div.querySelector('.enable-bulk-delete');
+  if (bulkToggle) {
+    bulkToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      bulkDeleteMode = !bulkDeleteMode;
+      loadChatMessages(msg.taskId || currentTaskId); // Use appropriate task ID
+    });
+  }
 }
+
 
 
 

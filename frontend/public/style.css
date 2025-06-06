@@ -2202,8 +2202,17 @@ textarea {
 #chat-messages {
     height: 500px;
     max-height: 500px !important;
-    overflow: auto !important;
+    overflow-y: auto !important;
     padding: 10px;
+    background: antiquewhite;
+}
+
+#bulk-actions{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
 }
 
 /* Message alignment */
@@ -2245,7 +2254,22 @@ textarea {
 }
 
 #delete-selected{
-    padding: 9.5px 12px;
+    display: none;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    height: 33.5px;
+    width: 33.5px;
+    font-size: 15px;
+    font-weight: bolder;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid var(--primary);
+    cursor: pointer;
+    border-radius: 10px;
 }
 #info-text{
     font-size: 14px;
