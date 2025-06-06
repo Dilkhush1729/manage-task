@@ -279,14 +279,14 @@
             <div class="modal-header">
                 <h2 id="task-details-title">Task Details</h2>
                 <div class="modal-header-actions">
+                    <button class="btn btn-chat" id="chat-btn">
+                        <i class="fas fa-comments"></i> Chat
+                    </button>
                     <button id="edit-task-button" class="icon-button">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button id="close-details-modal" class="close-button">
                         <i class="fas fa-times"></i>
-                    </button>
-                    <button class="btn btn-chat" id="chat-btn">
-                        <i class="fas fa-comments"></i> Chat
                     </button>
                 </div>
             </div>
@@ -318,6 +318,12 @@
                 <div id="category-history">
                     <p style="padding: 5px 0px 9px 0px; font-weight: bolder;">Category History</p>
                     <div class="category-list" id="category-history-8">
+                        <!-- History items will be injected here -->
+                    </div>
+                </div>
+                <div id="shared-history">
+                    <p style="padding: 5px 0px 9px 0px; font-weight: bolder;">Shared History</p>
+                    <div class="shared-list" id="shared-history-8">
                         <!-- History items will be injected here -->
                     </div>
                 </div>
@@ -460,7 +466,7 @@
         <div class="modal-content">
             <div id="task-chat-container">
                 <div class="task-chat-head">
-                    <h3 id="task_header">Task Chat <i id="info-text" class="fa-solid fa-circle-info"></i></h3>
+                    <h3 id="task_header">Task Flow <i id="info-text" class="fa-solid fa-circle-info"></i></h3>
                     <div id="bulk-actions">
                         <span id="delete-selected">
                             <i class="fa-solid fa-trash"></i>

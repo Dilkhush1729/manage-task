@@ -2277,10 +2277,13 @@ textarea {
 }
 /* Colors */
 .my-message .chat-bubble {
-    background-color: #dcf8c6;
+    background-color: var(--primary);
+    color: white;
     border-bottom-right-radius: 0;
 }
-
+.my-message .chat-bubble .chat-time,.my-message .chat-bubble .chat-timestamp,.my-message .chat-bubble .dropdown-toggle {
+    color: white;
+}
 .other-message .chat-bubble {
     background-color: #ffffff;
     border-bottom-left-radius: 0;

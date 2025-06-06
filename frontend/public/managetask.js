@@ -1224,6 +1224,7 @@ async function openTaskDetailsModal(taskId) {
   const taskCreatedDate = document.getElementById('task-created-date');
   const taskDetailsCategory = document.getElementById('task-details-category');
   const newcategoryHistory = document.getElementById('category-history-8');
+  const sharedWithTableContainer = document.getElementById('shared-history-8');
   const taskDetailsPriority = document.getElementById('task-details-priority');
   const taskDetailsDescription = document.getElementById('task-details-description-text');
   const completeTaskButton = document.getElementById('complete-task-button');
@@ -1325,6 +1326,37 @@ async function openTaskDetailsModal(taskId) {
             </tbody>
         </table>
     `;
+  }
+
+  if (task.sharedWith) {
+    if (task.sharedWith && Array.isArray(task.sharedWith) && task.sharedWith.length > 0) {
+      const sharedRows = task.sharedWith.map(user => {
+        const sharedAt = formatDateTime(user.sharedAt); // assuming same format function used
+
+        return `
+          <tr style="text-align: center;">
+            <td style="padding: 8px; border: 1px solid #ccc;">${user.email || '—'}</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">${user.access || 'Unknown User'}</td>
+            <td style="padding: 8px; border: 1px solid #ccc;">${sharedAt}</td>
+          </tr>
+        `;
+      }).join('');
+
+      sharedWithTableContainer.innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; text-align: center;">
+          <thead>
+            <tr style="text-align: center;">
+              <th style="padding: 8px; background-color: #f2f2f2; border: 1px solid #ccc;">Email</th>
+              <th style="padding: 8px; background-color: #f2f2f2; border: 1px solid #ccc;">Access</th>
+              <th style="padding: 8px; background-color: #f2f2f2; border: 1px solid #ccc;">Shared At</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sharedRows}
+          </tbody>
+        </table>
+      `;
+    }
   }
 
   // Priority
@@ -1490,6 +1522,8 @@ async function loadChatMessages(taskId) {
     newCloseBtn.addEventListener('click', (e) => {
       e.preventDefault();
       chatModal.style.visibility = 'hidden';
+      let newcategoryHistory = document.getElementById('category-history-8');
+      newcategoryHistory.innerHTML = '';
     });
   }
 }
@@ -1572,7 +1606,7 @@ async function sendChatMessage(taskId, userId, message) {
     });
 
     if (response.ok) {
-      // socket.emit('joinTaskRoom', taskId);
+      socket.emit('joinTaskRoom', taskId);
       renderMessage(message);
     } else {
       console.error('Failed to send message');
