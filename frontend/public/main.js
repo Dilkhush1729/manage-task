@@ -25,6 +25,27 @@ const closeAdminLoginBtn = document.getElementById('close-admin-login-btn');
 const testimonialDots = document.querySelectorAll('.dot');
 const testimonialCards = document.querySelector('.testimonial-cards');
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Password toggle functionality
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function () {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+});
+
+
 // Event Listeners
 window.addEventListener('scroll', () => {
     if (window.scrollY > 50) {

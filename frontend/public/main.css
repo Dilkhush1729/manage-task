@@ -186,6 +186,18 @@ header.scrolled {
     gap: 1rem;
 }
 
+.toggle-password {
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    cursor: pointer;
+    padding: 5px;
+}
+
 .mobile-menu-btn {
     display: none;
     background: none;
