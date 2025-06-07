@@ -1408,8 +1408,10 @@ async function loadChatMessages(taskId) {
             <div class="chat-bubble">
               <div class="chat-header">
                   <div class="message-text">
-                    ${!isUser ? `<strong style="font-size:15px;color: var(--primary);">${msg.userId.name} ~</strong>` : ''}
-                    <span style="font-size: 13px;">${linkify(msg.message)}</span>
+                    ${!isUser ? `<div style="font-size:15px;color: var(--primary); font-weight: bolder;">${msg.userId.name} ~</div>` : ''}
+                    <div style="font-size: 13px;">
+                      ${linkify(msg.message)}
+                    </div>
                     ${isUser ? `
                     <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
                           <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;color: #000;">⋮</button>

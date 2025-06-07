@@ -2238,11 +2238,21 @@ textarea {
 }
 
 /* Bubble style */
-.chat-bubble {
+.other-message .chat-bubble {
     display: flex;
     flex-direction: column;
     gap: 7px;
     width: fit-content;
+    max-width: 250px;
+}
+.my-message .chat-bubble {
+    display: flex;
+    flex-wrap: wrap;
+    /* min-width: 100px; */
+    flex-direction: column;
+    justify-content:flex-end;
+    gap: 7px;
+    /* width: fit-content; */
     max-width: 250px;
 }
 
@@ -2283,6 +2293,7 @@ textarea {
 }
 /* Colors */
 .my-message .chat-bubble .message-text{
+    width: fit-content;
     display: flex;
     align-items: center;
     border-radius: 8px;
@@ -2318,11 +2329,10 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 7px;
-    width: fit-content;
     
 }
 .my-message .chat-bubble .chat-header{
-    width: fit-content;
+    align-items: end;
 }
 
 /* Message text + time */
