@@ -180,12 +180,12 @@ async function init() {
 
   await loadFromBackend();
   await loadSharedTasks();
-  renderTasks();
-  renderCategories();
   updateCounts();
   setupEventListeners();
   checkTheme();
   fetchNotifications();
+  renderCategories();
+  renderTasks();
 }
 
 if (window.innerWidth < 768 && sidebar) {
@@ -1402,27 +1402,32 @@ async function loadChatMessages(taskId) {
       chatMessagesContainer.innerHTML = messages.map(msg => {
         const isUser = msg.userId._id === userId;
         return `
+        <div class='user-chat'>
           <div id="chat-${msg._id}" class="chat-message-wrapper ${isUser ? 'my-message' : 'other-message'}">
+            ${isUser && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;margin-top: 6px;" />` : ''}
             <div class="chat-bubble">
               <div class="chat-header">
-                ${isUser && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
-                <strong>${msg.userId.name}</strong>
-                ${isUser ? `
-                  <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
-                    <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;">⋮</button>
-                    <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
-                      <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;border-bottom: 2px solid #4f46e521;">Delete Chat</a>
-                      <a href="#" class="toggle-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
-                    </div>
+                  <div class="message-text">
+                    ${!isUser ? `<strong style="font-size:15px;color: var(--primary);">${msg.userId.name} ~</strong>` : ''}
+                    <span style="font-size: 13px;">${linkify(msg.message)}</span>
+                    ${isUser ? `
+                    <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
+                          <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;color: #000;">⋮</button>
+                          <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
+                            <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;border-bottom: 2px solid #4f46e521;">Delete Chat</a>
+                            <a href="#" class="toggle-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
+                          </div>
+                        </div>
+                    ` : ''}
                   </div>
-                ` : ''}
-              </div>
-              <div class="chat-time">
-                <span>${msg.message}</span>
-                <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
+                </div>
+                <div class="${isUser ? 'chat-time-owner' : 'chat-time-other'} ">
+                  <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
+                </div>
               </div>
             </div>
           </div>
+        </div>
         `;
       }).join('');
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
@@ -1524,6 +1529,7 @@ async function loadChatMessages(taskId) {
       chatModal.style.visibility = 'hidden';
       let newcategoryHistory = document.getElementById('category-history-8');
       newcategoryHistory.innerHTML = '';
+      bulkDeleteMode = false;
     });
   }
 }
@@ -1682,26 +1688,34 @@ function renderMessage(msg) {
   }
 
   div.innerHTML = `
-    <div class="chat-bubble">
-      <div class="chat-header">
-        ${msg.userId._id === userId && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px;" />` : ''}
-        <strong>${msg.userId.name}:</strong>
-        ${msg.userId._id === userId ? `
-          <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
-            <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer;">⋮</button>
-            <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
-              <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: black;border-bottom: 2px solid #4f46e521;text-align:center;color: #4f46e5;">Delete Chat</a>
-              <a href="#" class="enable-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: black; text-align:center; color: #4f46e5;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
-            </div>
+  <div class='user-chat'>
+    <div id="chat-${msg._id}" class="chat-message-wrapper ${msg.userId._id === userId ? 'my-message' : 'other-message'}">
+      ${msg.userId._id === userId && bulkDeleteMode ? `<input type="checkbox" class="chat-select" data-id="${msg._id}" style="margin-right: 8px; margin-top: 6px;" />` : ''}
+      <div class="chat-bubble">
+        <div class="chat-header">
+          <div class="message-text">
+            ${msg.userId._id !== userId ? `<strong style="font-size:15px;color: var(--primary);">${msg.userId.name} ~</strong>` : ''}
+            <span style="font-size: 13px;">${linkify(msg.message)}</span>
+            ${msg.userId._id === userId ? `
+              <div class="dropdown-wrapper" style="display: inline-block; position: relative; margin-left: 10px;">
+                <button class="dropdown-toggle" data-msg-id="${msg._id}" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #000;">⋮</button>
+                <div class="dropdown-menu" style="display: none; position: absolute; top: 24px; right: 0; background-color: white; border: 1px solid #ccc; z-index: 100; border-radius: 14px; width: 130px;">
+                  <a href="#" class="delete-chat-single" data-id="${msg._id}" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center; border-bottom: 2px solid #4f46e521;">Delete Chat</a>
+                  <a href="#" class="enable-bulk-delete" style="display: block; padding: 10px; text-decoration: none; color: #4f46e5; text-align:center;">${bulkDeleteMode ? 'Deselect Chat' : 'Select Chat'}</a>
+                </div>
+              </div>
+            ` : ''}
           </div>
-        ` : ''}
-      </div>
-      <div class="chat-time">
-        <span>${msg.message}</span>
-        <small style="color: gray; font-size: 0.8em;">${formatDateTime(msg.createdAt)}</small>
+        </div>
+        <div class="${msg.userId._id === userId ? 'chat-time-owner' : 'chat-time-other'}">
+          <small class="chat-timestamp">${formatDateTime(msg.createdAt)}</small>
+        </div>
       </div>
     </div>
-  `;
+  </div>
+`;
+
+
 
   chatMessagesContainer.appendChild(div);
 
@@ -2826,6 +2840,14 @@ if (clearAllBtn) {
     }
   });
 }
+
+function linkify(text) {
+  const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+  return text.replace(urlPattern, (url) => {
+    return `<a style="font-size: 13px;word-break: break-word;overflow-wrap: break-word;white-space: pre-wrap;max-width: 100%;" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  });
+}
+
 
 // Initialize the app
 init();
