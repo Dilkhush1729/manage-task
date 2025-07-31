@@ -15,8 +15,8 @@ let taskActivityChart;
 let tasksByPriorityChart;
 let taskStatusChart;
 
-// let API_URL = 'http://localhost:5000/api';
-let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+let API_URL = 'http://localhost:5000/api';
+// let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
 
 // Mock functions (replace with your actual implementations)
 // async function apiRequest(url) {
@@ -131,8 +131,192 @@ function formatDate(dateString) {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function showNotification(message, type = 'success') {
-  alert(`${type.toUpperCase()}: ${message}`);
+function showNotification(message, type = 'success', duration = 5000) {
+  // Create notification element if it doesn't exist
+  let notificationContainer = document.querySelector('.notification-container');
+
+  if (!notificationContainer) {
+    notificationContainer = document.createElement('div');
+    notificationContainer.className = 'notification-container';
+    document.body.appendChild(notificationContainer);
+
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
+      }
+      
+      .notification {
+        padding: 15px 20px;
+        border-radius: var(--admin-radius);
+        box-shadow: var(--admin-shadow);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideInRight 0.3s ease-out forwards;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .notification.success {
+        background-color: var(--admin-success);
+        color: white;
+      }
+      
+      .notification.error {
+        background-color: var(--admin-danger);
+        color: white;
+      }
+      
+      .notification.info {
+        background-color: var(--admin-info);
+        color: white;
+      }
+      
+      .notification.warning {
+        background-color: var(--admin-warning);
+        color: var(--admin-dark);
+      }
+      
+      .notification-icon {
+        font-size: 1.25rem;
+      }
+      
+      .notification-message {
+        flex: 1;
+      }
+      
+      .notification-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        font-size: 1rem;
+      }
+      
+      .notification-close:hover {
+        opacity: 1;
+      }
+      
+      .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background-color: rgba(255, 255, 255, 0.5);
+        width: 100%;
+        transform-origin: left;
+      }
+      
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideOutRight {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+
+  // Icon based on type
+  let icon;
+  switch (type) {
+    case 'success':
+      icon = 'fas fa-check-circle';
+      break;
+    case 'error':
+      icon = 'fas fa-exclamation-circle';
+      break;
+    case 'info':
+      icon = 'fas fa-info-circle';
+      break;
+    case 'warning':
+      icon = 'fas fa-exclamation-triangle';
+      break;
+    default:
+      icon = 'fas fa-bell';
+  }
+
+  // Create notification content
+  notification.innerHTML = `
+    <div class="notification-icon">
+      <i class="${icon}"></i>
+    </div>
+    <div class="notification-message">${message}</div>
+    <button class="notification-close">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="notification-progress"></div>
+  `;
+
+  // Add to container
+  notificationContainer.appendChild(notification);
+
+  // Animate progress bar
+  const progressBar = notification.querySelector('.notification-progress');
+  progressBar.style.animation = `shrinkWidth ${duration / 1000}s linear forwards`;
+  progressBar.style.animationFillMode = 'forwards';
+
+  // Add keyframes for progress bar if not already added
+  if (!document.querySelector('#notification-keyframes')) {
+    const keyframes = document.createElement('style');
+    keyframes.id = 'notification-keyframes';
+    keyframes.textContent = `
+      @keyframes shrinkWidth {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+    `;
+    document.head.appendChild(keyframes);
+  }
+
+  // Close button event
+  const closeButton = notification.querySelector('.notification-close');
+  closeButton.addEventListener('click', () => {
+    closeNotification(notification);
+  });
+
+  // Auto close after duration
+  setTimeout(() => {
+    closeNotification(notification);
+  }, duration);
+
+  // Close notification function
+  function closeNotification(notif) {
+    notif.style.animation = 'slideOutRight 0.3s ease-in forwards';
+    setTimeout(() => {
+      notif.remove();
+    }, 300);
+  }
 }
 
 function showLoading(element, message = 'Loading...') {
@@ -295,6 +479,8 @@ function initCharts(data) {
   const taskActivityCtx = document.getElementById('task-activity-chart');
   if (taskActivityCtx && data.taskStats) {
     const dailyData = data.taskStats.dailyTaskCreation;
+    let chartData = dailyData.slice(-7);
+    
     taskActivityChart = new Chart(taskActivityCtx, {
       type: 'line',
       data: {
@@ -340,10 +526,7 @@ function initCharts(data) {
     const chartPeriodButtons = document.querySelectorAll('.chart-action[data-period]');
     chartPeriodButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // Remove active class from all buttons
         chartPeriodButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Add active class to clicked button
         button.classList.add('active');
         
         // Update chart data based on period
@@ -352,29 +535,21 @@ function initCharts(data) {
         const period = button.dataset.period;
         
         if (period === 'month') {
-          // Simulate monthly data
-          const monthlyData = Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            count: Math.floor(Math.random() * 10) + 1
-          }));
-          
-          taskActivityChart.data.labels = monthlyData.map(item => {
+          chartData = dailyData.slice(-30); // last 30 days
+          taskActivityChart.data.labels = chartData.map(item => {
             const date = new Date(item.date);
             return date.getDate();
           });
-          
-          taskActivityChart.data.datasets[0].data = monthlyData.map(item => item.count);
-          taskActivityChart.update();
         } else {
-          // Reset to weekly data
-          taskActivityChart.data.labels = dailyData.map(item => {
+          chartData = dailyData.slice(-7); // last 7 days
+          taskActivityChart.data.labels = chartData.map(item => {
             const date = new Date(item.date);
             return date.toLocaleDateString('en-US', { weekday: 'short' });
           });
-          
-          taskActivityChart.data.datasets[0].data = dailyData.map(item => item.count);
-          taskActivityChart.update();
         }
+
+        taskActivityChart.data.datasets[0].data = chartData.map(item => item.count);
+        taskActivityChart.update();
       });
     });
   }

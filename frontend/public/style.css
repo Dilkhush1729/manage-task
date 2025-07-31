@@ -779,6 +779,10 @@ textarea {
     /* margin-top: 1.5rem; */
 }
 
+#login-actions-2,#login-actions,#login-actions-3 {
+   padding: 0px !important;
+}
+
 .save-button {
     background-color: var(--primary);
     color: white;

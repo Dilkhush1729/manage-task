@@ -203,44 +203,69 @@ router.get('/stats/overview', async (req, res) => {
     const pendingTasks = totalTasks - completedTasks;
     
     // Tasks by priority
-    const highPriorityTasks = await Task.countDocuments({ priority: 'high' });
-    const mediumPriorityTasks = await Task.countDocuments({ priority: 'medium' });
-    const lowPriorityTasks = await Task.countDocuments({ priority: 'low' });
-    
+    const [highPriorityTasks, mediumPriorityTasks, lowPriorityTasks] = await Promise.all([
+      Task.countDocuments({ priority: 'high' }),
+      Task.countDocuments({ priority: 'medium' }),
+      Task.countDocuments({ priority: 'low' })
+    ]);
+
     // Tasks created in the last 7 days
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const recentTasks = await Task.countDocuments({
-      createdAt: { $gte: oneWeekAgo }
-    });
-    
-    // Tasks by user (top 5 users)
+    const recentTasks = await Task.countDocuments({ createdAt: { $gte: oneWeekAgo } });
+
+    // Tasks by user (top 5)
     const tasksByUser = await Task.aggregate([
       { $group: { _id: '$user', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
-      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
       { $unwind: '$user' },
-      { $project: { _id: 0, userId: '$_id', name: '$user.name', email: '$user.email', count: 1 } }
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          name: '$user.name',
+          email: '$user.email',
+          count: 1
+        }
+      }
     ]);
-    
-    // Daily task creation for the last 7 days
+
+    // ✅ Daily task creation for the last 30 days (IST-based)
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5 hours 30 mins
     const dailyTaskCreation = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
+
+    for (let i = 29; i >= 0; i--) {
+      // Current IST day at midnight
+      const istMidnight = new Date();
+      istMidnight.setUTCHours(0, 0, 0, 0); // start of UTC day
+      istMidnight.setDate(istMidnight.getDate() - i);
+
+      // Shift to IST by adding offset
+      const startIST = new Date(istMidnight.getTime() + IST_OFFSET);
+      const endIST = new Date(startIST.getTime() + 24 * 60 * 60 * 1000);
+
+      // Convert IST start/end back to UTC for MongoDB query
+      const startUTC = new Date(startIST.getTime() - IST_OFFSET);
+      const endUTC = new Date(endIST.getTime() - IST_OFFSET);
+
       const count = await Task.countDocuments({
-        createdAt: { $gte: date, $lt: nextDate }
+        createdAt: { $gte: startUTC, $lt: endUTC }
       });
-      
+
+      // Display IST date in YYYY-MM-DD
+      const displayDate = startIST.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
       dailyTaskCreation.push({
-        date: date.toISOString().split('T')[0],
+        date: displayDate,
         count
       });
     }

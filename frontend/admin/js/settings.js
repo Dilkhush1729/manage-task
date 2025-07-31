@@ -74,40 +74,192 @@ async function apiRequest(url, method = 'GET', data = null) {
 }
 
 // Show notification
-const showToast = (message, type = "success") => {
-  debugger;
-  const toastContainer = document.getElementById("toastContainer")
-  const toast = document.createElement("div")
+function showToast(message, type = 'success', duration = 5000) {
+  // Create notification element if it doesn't exist
+  let notificationContainer = document.querySelector('.notification-container');
 
-  const bgColor = type === "success" ? "bg-green-500" : type === "error" ? "bg-red-500" : "bg-blue-500"
+  if (!notificationContainer) {
+    notificationContainer = document.createElement('div');
+    notificationContainer.className = 'notification-container';
+    document.body.appendChild(notificationContainer);
 
-  toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`
-  toast.innerHTML = `
-        <div class="flex items-center justify-between">
-            <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `
-
-  toastContainer.appendChild(toast)
-
-  // Animate in
-  setTimeout(() => {
-    toast.classList.remove("translate-x-full")
-  }, 100)
-
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    toast.classList.add("translate-x-full")
-    setTimeout(() => {
-      if (toast.parentElement) {
-        toast.remove()
-
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .notification-container {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
       }
-    }, 300)
-  }, 5000)
+      
+      .notification {
+        padding: 15px 20px;
+        border-radius: var(--admin-radius);
+        box-shadow: var(--admin-shadow);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideInRight 0.3s ease-out forwards;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .notification.success {
+        background-color: var(--admin-success);
+        color: white;
+      }
+      
+      .notification.error {
+        background-color: var(--admin-danger);
+        color: white;
+      }
+      
+      .notification.info {
+        background-color: var(--admin-info);
+        color: white;
+      }
+      
+      .notification.warning {
+        background-color: var(--admin-warning);
+        color: var(--admin-dark);
+      }
+      
+      .notification-icon {
+        font-size: 1.25rem;
+      }
+      
+      .notification-message {
+        flex: 1;
+      }
+      
+      .notification-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        font-size: 1rem;
+      }
+      
+      .notification-close:hover {
+        opacity: 1;
+      }
+      
+      .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background-color: rgba(255, 255, 255, 0.5);
+        width: 100%;
+        transform-origin: left;
+      }
+      
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideOutRight {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+
+  // Icon based on type
+  let icon;
+  switch (type) {
+    case 'success':
+      icon = 'fas fa-check-circle';
+      break;
+    case 'error':
+      icon = 'fas fa-exclamation-circle';
+      break;
+    case 'info':
+      icon = 'fas fa-info-circle';
+      break;
+    case 'warning':
+      icon = 'fas fa-exclamation-triangle';
+      break;
+    default:
+      icon = 'fas fa-bell';
+  }
+
+  // Create notification content
+  notification.innerHTML = `
+    <div class="notification-icon">
+      <i class="${icon}"></i>
+    </div>
+    <div class="notification-message">${message}</div>
+    <button class="notification-close">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="notification-progress"></div>
+  `;
+
+  // Add to container
+  notificationContainer.appendChild(notification);
+
+  // Animate progress bar
+  const progressBar = notification.querySelector('.notification-progress');
+  progressBar.style.animation = `shrinkWidth ${duration / 1000}s linear forwards`;
+  progressBar.style.animationFillMode = 'forwards';
+
+  // Add keyframes for progress bar if not already added
+  if (!document.querySelector('#notification-keyframes')) {
+    const keyframes = document.createElement('style');
+    keyframes.id = 'notification-keyframes';
+    keyframes.textContent = `
+      @keyframes shrinkWidth {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+    `;
+    document.head.appendChild(keyframes);
+  }
+
+  // Close button event
+  const closeButton = notification.querySelector('.notification-close');
+  closeButton.addEventListener('click', () => {
+    closeNotification(notification);
+  });
+
+  // Auto close after duration
+  setTimeout(() => {
+    closeNotification(notification);
+  }, duration);
+
+  // Close notification function
+  function closeNotification(notif) {
+    notif.style.animation = 'slideOutRight 0.3s ease-in forwards';
+    setTimeout(() => {
+      notif.remove();
+    }, 300);
+  }
 }
 
 // Initialize settings page
@@ -411,7 +563,7 @@ async function updateAdmin() {
     createAdminModal.classList.remove('show');
     adminModal.style.display = 'none';
 
-    showToast('Administrator updated successfully', 'success');
+    showToast('Admin data updated successfully', 'success');
     await loadSecondaryAdmins();
   } catch (error) {
     console.error('Error updating admin:', error);

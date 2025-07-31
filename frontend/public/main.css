@@ -263,7 +263,7 @@ header.scrolled {
     width: 100%;
     height: auto;
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    /* box-shadow: var(--shadow); */
 }
 
 .shape {

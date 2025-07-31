@@ -111,11 +111,13 @@ router.get('/:id/stats', async (req, res) => {
     const categoryCount = await Category.countDocuments({ user: userId });
     
     // Get tasks by priority
-    const highPriorityTasks = await Task.countDocuments({ user: userId, priority: 'high' });
-    const mediumPriorityTasks = await Task.countDocuments({ user: userId, priority: 'medium' });
-    const lowPriorityTasks = await Task.countDocuments({ user: userId, priority: 'low' });
-    
-    // Get tasks created in the last 7 days
+    const [highPriorityTasks, mediumPriorityTasks, lowPriorityTasks] = await Promise.all([
+      Task.countDocuments({ user: userId, priority: 'high' }),
+      Task.countDocuments({ user: userId, priority: 'medium' }),
+      Task.countDocuments({ user: userId, priority: 'low' })
+    ]);
+
+    // Tasks created in the last 7 days
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
@@ -130,48 +132,46 @@ router.get('/:id/stats', async (req, res) => {
       completed: true,
       createdAt: { $gte: oneWeekAgo }
     });
-    
-    // Get daily task creation for the last 7 days
+
+    // ✅ Daily task creation for the last 7 days (display in IST)
     const dailyTaskCreation = [];
     for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
+      const startOfDay = new Date();
+      startOfDay.setDate(startOfDay.getDate() - i);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(startOfDay.getDate() + 1);
+
       const count = await Task.countDocuments({
         user: userId,
-        createdAt: { $gte: date, $lt: nextDate }
+        createdAt: { $gte: startOfDay, $lt: endOfDay }
       });
-      
-      dailyTaskCreation.push({
-        date: date.toISOString().split('T')[0],
-        count
-      });
+
+      const displayDate = startOfDay.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
+
+      dailyTaskCreation.push({ date: displayDate, count });
     }
     
     // Get daily task completion for the last 7 days
     const dailyTaskCompletion = [];
     for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
+      const startOfDay = new Date();
+      startOfDay.setDate(startOfDay.getDate() - i);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(startOfDay.getDate() + 1);
+
       const count = await Task.countDocuments({
         user: userId,
         completed: true,
-        createdAt: { $gte: date, $lt: nextDate }
+        createdAt: { $gte: startOfDay, $lt: endOfDay }
       });
-      
-      dailyTaskCompletion.push({
-        date: date.toISOString().split('T')[0],
-        count
-      });
+
+      const displayDate = startOfDay.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+      dailyTaskCompletion.push({ date: displayDate, count });
     }
     
     res.json({
