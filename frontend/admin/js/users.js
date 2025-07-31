@@ -141,7 +141,7 @@ async function loadUsers(page = 1, searchTerm = '') {
         <td>${user.email}</td>
         <td>${user.stats.totalTasks} (${user.stats.completedTasks} completed)</td>
         <td>${formatDate(user.createdAt)}</td>
-        <td>
+        <td style="text-align: center;">
           <button class="btn btn-sm btn-primary view-user-btn" data-id="${user._id}">
             <i class="fas fa-eye"></i>
           </button>

@@ -845,8 +845,8 @@ function exportTasksToJSON() {
 // Download CSV template
 function downloadCSVTemplate() {
   const template = `Name,Description,Due Date,Due Time,Category Id,Priority,Completed
-  "Task 1","Description for task 1","2023-12-31","14:00","67db1805653a686047418c91","high","false"
-  "Task 2","Description for task 2","2023-12-31","15:00","67db1805653a686047418c91","medium","true"`;
+  "Task 1","Description for task 1","2025-12-31","14:00","67db1805653a686047418c91","high","false"
+  "Task 2","Description for task 2","2025-12-31","15:00","67db1805653a686047418c91","medium","true"`;
 
   const blob = new Blob([template], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);

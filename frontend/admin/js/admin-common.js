@@ -25,8 +25,13 @@ if (userIcon) {
 
 // Close the user block if clicked outside
 document.addEventListener('click', (event) => {
-  if (!userIcon.contains(event.target) && !userBlock.contains(event.target)) {
-    userBlock.classList.remove('show');
+  const userIcon = document.getElementById('user-icon');
+  const userBlock = document.getElementById('user-block');
+
+  if (userIcon && userBlock) {
+    if (!userIcon.contains(event.target) && !userBlock.contains(event.target)) {
+      userBlock.classList.remove('show');
+    }
   }
 });
 

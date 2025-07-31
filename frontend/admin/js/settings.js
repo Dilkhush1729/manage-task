@@ -3,12 +3,13 @@ const profileForm = document.getElementById('profile-form');
 const adminDisplayName = document.getElementById('admin-display-name');
 const adminEmail = document.getElementById('admin-email');
 const saveProfileBtn = document.getElementById('save-profile-btn');
+const currentPasswordInput = document.getElementById('current-password');
+const newPasswordInput = document.getElementById('new-password');
 
 const passwordForm = document.getElementById('password-form');
 const currentPassword = document.getElementById('current-password');
 const newPassword = document.getElementById('new-password');
 const confirmPassword = document.getElementById('confirm-password');
-const updatePasswordBtn = document.getElementById('update-password-btn');
 
 const secondaryAdminContainer = document.getElementById('secondary-admin-container');
 const addAdminBtn = document.getElementById('add-admin-btn');
@@ -20,6 +21,7 @@ const saveAppearanceBtn = document.getElementById('save-appearance-btn');
 
 // Create secondary admin modal
 const createAdminModal = document.getElementById('create-admin-modal');
+const adminModal = document.getElementById('create-admin-modal-content');
 const createAdminForm = document.getElementById('create-admin-form');
 const secondaryAdminName = document.getElementById('secondary-admin-name');
 const secondaryAdminEmail = document.getElementById('secondary-admin-email');
@@ -35,8 +37,11 @@ const closeConfirmDeleteAdmin = document.getElementById('close-confirm-delete-ad
 const cancelDeleteAdmin = document.getElementById('cancel-delete-admin');
 const confirmDeleteAdmin = document.getElementById('confirm-delete-admin');
 
-// let API_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
-let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+let API_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
+// let API_URL = 'https://manage-task-backend-2vf9.onrender.com/api';
+
+let isEditMode = false;
+let editingAdminId = null;
 
 async function apiRequest(url, method = 'GET', data = null) {
   const token = localStorage.getItem('adminToken');
@@ -55,12 +60,12 @@ async function apiRequest(url, method = 'GET', data = null) {
     }
 
     const response = await fetch(`${API_URL}${url}`, options);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
@@ -69,23 +74,40 @@ async function apiRequest(url, method = 'GET', data = null) {
 }
 
 // Show notification
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
+const showToast = (message, type = "success") => {
+  debugger;
+  const toastContainer = document.getElementById("toastContainer")
+  const toast = document.createElement("div")
 
-  document.body.appendChild(notification);
+  const bgColor = type === "success" ? "bg-green-500" : type === "error" ? "bg-red-500" : "bg-blue-500"
 
+  toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`
+  toast.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `
+
+  toastContainer.appendChild(toast)
+
+  // Animate in
   setTimeout(() => {
-    notification.classList.add('show');
-  }, 10);
+    toast.classList.remove("translate-x-full")
+  }, 100)
 
+  // Auto remove after 5 seconds
   setTimeout(() => {
-    notification.classList.remove('show');
+    toast.classList.add("translate-x-full")
     setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 3000);
+      if (toast.parentElement) {
+        toast.remove()
+
+      }
+    }, 300)
+  }, 5000)
 }
 
 // Initialize settings page
@@ -96,15 +118,12 @@ async function initSettingsPage() {
     
     // Load secondary admin info
     await loadSecondaryAdmins();
-    
-    // Load appearance settings
-    loadAppearanceSettings();
-    
+
     // Set up event listeners
     setupEventListeners();
   } catch (error) {
     console.error('Error initializing settings page:', error);
-    showNotification('Failed to load settings', 'error');
+    showToast('Failed to load settings', 'error');
   }
 }
 
@@ -112,8 +131,14 @@ async function initSettingsPage() {
 async function loadAdminProfile() {
   try {
     // Get current admin data
-    const admin = await apiRequest('/admin/profile');
-    
+    const admin = await apiRequest('/admin/me');
+    console.log('Admin profile loaded:', admin.email);
+
+    if (admin.email === 'admin@taskmanager.com') {
+      document.getElementById('secondary-admin-display').style.display = 'block';
+    } else {
+      document.getElementById('secondary-admin-display').style.display = 'none';
+    }
     // Populate form fields
     adminDisplayName.value = admin.name;
     adminEmail.value = admin.email;
@@ -131,7 +156,7 @@ async function loadAdminProfile() {
     }
   } catch (error) {
     console.error('Error loading admin profile:', error);
-    showNotification('Failed to load profile information', 'error');
+    showToast('Failed to load profile information', 'error');
   }
 }
 
@@ -142,7 +167,7 @@ async function loadSecondaryAdmins() {
     secondaryAdminContainer.innerHTML = '<p class="text-center">Loading administrators...</p>';
     
     // Get secondary admins
-    const admins = await apiRequest('/admin/secondary-admins');
+    const admins = await apiRequest('/admin/secondary-admin');
     
     // Render admins list
     if (admins.length === 0) {
@@ -152,156 +177,126 @@ async function loadSecondaryAdmins() {
     
     const adminsList = document.createElement('ul');
     adminsList.className = 'admin-list';
-    
+
+    // Create the table structure once
+    const table = document.createElement('table');
+    table.className = 'admin-item-table';
+    table.style.width = '100%';
+    table.style.color = '#000';
+    table.style.borderCollapse = 'collapse';
+    table.style.marginBottom = '10px';
+
+    table.innerHTML = `
+      <thead>
+        <tr style="background-color: #f5f5f5;">
+          <th style="padding: 8px; border: 1px solid #ddd;">Avatar</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">Name</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">Email</th>
+          <th style="padding: 8px; border: 1px solid #ddd;">Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+    const tbody = table.querySelector('tbody');
     admins.forEach(admin => {
-      const listItem = document.createElement('li');
-      listItem.className = 'admin-item';
-      
-      listItem.innerHTML = `
-        <div class="admin-info">
-          <div class="admin-avatar">
-            <span>${admin.name.charAt(0).toUpperCase()}</span>
+      const row = document.createElement('tr');
+      row.style.textAlign = 'center';
+      row.style.color = 'var(--admin-primary)';
+
+      row.innerHTML = `
+        <td style="padding: 8px; border: 1px solid #ddd; display: flex; justify-content: center; align-items: center;">
+          <div class="user-avatar">
+            <span style="background:#333; color:#fff; padding:6px 10px; border-radius:50%;">
+              ${admin.name.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <div class="admin-details">
-            <h4>${admin.name}</h4>
-            <p>${admin.email}</p>
-          </div>
-        </div>
-        <div class="admin-actions">
+        </td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${admin.name}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${admin.email}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">
           <button class="btn btn-sm btn-danger delete-admin-btn" data-id="${admin._id}">
             <i class="fas fa-trash"></i>
           </button>
-        </div>
+          <button class="btn btn-sm btn-primary edit-admin-btn" data-id="${admin._id}">
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
       `;
-      
-      adminsList.appendChild(listItem);
+
+      tbody.appendChild(row);
     });
-    
+
+    // Append the table to adminsList
+    adminsList.appendChild(table);
+
     secondaryAdminContainer.innerHTML = '';
     secondaryAdminContainer.appendChild(adminsList);
     
     // Add event listeners to delete buttons
     document.querySelectorAll('.delete-admin-btn').forEach(btn => {
-      btn.addEventListener('click', () => openDeleteAdminModal(btn.dataset.id));
+      btn.addEventListener('click', (e) => {
+        const adminId = btn.getAttribute('data-id');
+        openDeleteAdminModal(adminId);
+      });
     });
+    // Add event listeners to edit buttons
+    document.querySelectorAll('.edit-admin-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const adminId = btn.getAttribute('data-id');
+        const selectedAdmin = admins.find(a => a._id === adminId);
+        openEditAdminModal(selectedAdmin);
+      });
+    });
+
   } catch (error) {
     console.error('Error loading secondary admins:', error);
     secondaryAdminContainer.innerHTML = '<p class="text-center text-danger">Failed to load administrators.</p>';
   }
 }
 
-// Load appearance settings
-function loadAppearanceSettings() {
-  // Load theme preference
-  const currentTheme = localStorage.getItem('admin-theme') || 'light';
-  
-  // Select appropriate theme option
-  themeOptions.forEach(option => {
-    if (option.dataset.theme === currentTheme) {
-      option.classList.add('selected');
-    } else {
-      option.classList.remove('selected');
-    }
-  });
-  
-  // Apply theme to body
-  document.body.classList.toggle('dark-mode', currentTheme === 'dark');
-  
-  // Update theme toggle icon
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) {
-    themeToggle.innerHTML = currentTheme === 'dark' 
-      ? '<i class="fas fa-sun"></i>' 
-      : '<i class="fas fa-moon"></i>';
-  }
-  
-  // Load sidebar position
-  const sidebarPosition = localStorage.getItem('sidebar-position') || 'left';
-  
-  // Select appropriate radio button
-  sidebarPositionRadios.forEach(radio => {
-    if (radio.value === sidebarPosition) {
-      radio.checked = true;
-    }
-  });
-  
-  // Apply sidebar position
-  const adminSidebar = document.querySelector('.admin-sidebar');
-  const adminMain = document.querySelector('.admin-main');
-  
-  if (adminSidebar && adminMain) {
-    adminSidebar.style.left = sidebarPosition === 'left' ? '0' : 'auto';
-    adminSidebar.style.right = sidebarPosition === 'right' ? '0' : 'auto';
-    adminMain.style.marginLeft = sidebarPosition === 'left' ? '260px' : '0';
-    adminMain.style.marginRight = sidebarPosition === 'right' ? '260px' : '0';
-  }
-}
-
 // Save profile changes
-async function saveProfileChanges() {
+async function saveProfileChanges(e) {
+  e.preventDefault();
   try {
     const name = adminDisplayName.value.trim();
     const email = adminEmail.value.trim();
-    
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+
     // Validate form
-    if (!name || !email) {
-      showNotification('Name and email are required', 'error');
+    if (!name || !email || !currentPassword) {
+      showToast('Name, email, and current password are required', 'error');
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      showToast('New password must be at least 6 characters long', 'error');
       return;
     }
     
     // Prepare data
-    const profileData = { name, email };
-    
-    // Update profile
-    await apiRequest('/admin/profile', 'PUT', profileData);
-    
-    // Show success message
-    showNotification('Profile updated successfully', 'success');
-    
+    const profileData = {
+      name,
+      email,
+      currentPassword,
+      ...(newPassword ? { newPassword } : {}) // Only include newPassword if provided
+    };
+
+    // Send update request
+    await apiRequest('/admin/update-credentials', 'PUT', profileData);
+
+    showToast('Profile updated successfully', 'success');
+
     // Reload admin profile to update UI
     await loadAdminProfile();
+
+    // Reset password fields
+    currentPasswordInput.value = '';
+    newPasswordInput.value = '';
   } catch (error) {
     console.error('Error saving profile changes:', error);
-    showNotification('Failed to update profile', 'error');
-  }
-}
-
-// Update password
-async function updatePassword() {
-  try {
-    const current = currentPassword.value;
-    const newPass = newPassword.value;
-    const confirm = confirmPassword.value;
-    
-    // Validate form
-    if (!current || !newPass || !confirm) {
-      showNotification('All password fields are required', 'error');
-      return;
-    }else if (newPass !== confirm) {
-      showNotification('New passwords do not match', 'error');
-      return;
-    }else if(newPass.length < 6) {
-      showNotification('Password must be at least 6 characters long', 'error');
-      return;
-    }
-    
-    // Prepare data
-    const passwordData = {
-      currentPassword: current,
-      newPassword: newPass
-    };
-    
-    // Update password
-    await apiRequest('/admin/change-password', 'POST', passwordData);
-    
-    // Show success message
-    showNotification('Password updated successfully', 'success');
-    
-    // Clear form
-    passwordForm.reset();
-  } catch (error) {
-    console.error('Error updating password:', error);
-    showNotification('Failed to update password. Please check your current password.', 'error');
+    showToast(error.message || 'Failed to update profile', 'error');
   }
 }
 
@@ -319,25 +314,50 @@ function saveAppearanceSettings() {
     
     // Save sidebar position to local storage
     localStorage.setItem('sidebar-position', sidebarPosition);
-    
-    // Apply settings
-    loadAppearanceSettings();
-    
     // Show success message
-    showNotification('Appearance settings saved successfully', 'success');
+    showToast('Appearance settings saved successfully', 'success');
   } catch (error) {
     console.error('Error saving appearance settings:', error);
-    showNotification('Failed to save appearance settings', 'error');
+    showToast('Failed to save appearance settings', 'error');
   }
 }
 
 // Open create admin modal
 function openCreateAdminModal() {
-  // Clear form
+  isEditMode = false;
+  editingAdminId = null;
+  let adminModalTitle = document.getElementById('admin-modal-title');
+
   createAdminForm.reset();
-  
-  // Show modal
+  if (adminModalTitle) {
+    adminModalTitle.textContent = 'Add New Admin';
+  }
+
+  saveAdminBtn.textContent = 'Create Admin';
   createAdminModal.classList.add('show');
+  adminModal.style.display = 'block';
+}
+
+// Open modal for Edit
+function openEditAdminModal(admin) {
+  console.log('Opening edit modal for admin:', admin);
+  const adminData = Array.isArray(admin) ? admin[0] : admin;
+  isEditMode = true;
+  editingAdminId = adminData._id;
+  console.log('Editing admin ID:', editingAdminId);
+
+  // Pre-fill form
+  secondaryAdminName.value = adminData.name;
+  secondaryAdminEmail.value = adminData.email;
+  secondaryAdminPassword.value = '';
+  secondaryAdminConfirmPassword.value = '';
+  let adminModalTitle = document.getElementById('admin-modal-title');
+
+  adminModalTitle.textContent = 'Edit Admin';
+  saveAdminBtn.textContent = 'Update Admin';
+
+  createAdminModal.classList.add('show');
+  adminModal.style.display = 'block';
 }
 
 // Open delete admin modal
@@ -356,126 +376,193 @@ async function createAdmin() {
     const email = secondaryAdminEmail.value.trim();
     const password = secondaryAdminPassword.value;
     const confirmPassword = secondaryAdminConfirmPassword.value;
-    
-    // Validate form
-    if (!name || !email || !password || !confirmPassword) {
-      showNotification('All fields are required', 'error');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      showNotification('Passwords do not match', 'error');
-      return;
-    }
-    
-    if (password.length < 6) {
-      showNotification('Password must be at least 6 characters long', 'error');
-      return;
-    }
-    
-    // Prepare data
-    const adminData = {
-      name,
-      email,
-      password
-    };
-    
-    // Create admin
-    await apiRequest('/admin/secondary-admins', 'POST', adminData);
-    
-    // Close modal
+    if (!validateForm(name, email, password, confirmPassword)) return;
+    const adminData = { name, email, password };
+
+    await apiRequest('/admin/create-secondary', 'POST', adminData);
     createAdminModal.classList.remove('show');
-    
+    adminModal.style.display = 'none';
     // Show success message
-    showNotification('Administrator added successfully', 'success');
-    
+    showToast('Administrator added successfully', 'success');
+
     // Reload secondary admins
     await loadSecondaryAdmins();
   } catch (error) {
     console.error('Error creating admin:', error);
-    showNotification('Failed to add administrator', 'error');
+    showToast('Failed to add administrator', 'error');
   }
 }
+
+// Update admin
+async function updateAdmin() {
+  try {
+    const name = secondaryAdminName.value.trim();
+    const email = secondaryAdminEmail.value.trim();
+    const password = secondaryAdminPassword.value;
+    const confirmPassword = secondaryAdminConfirmPassword.value;
+
+    if (!validateForm(name, email, password, confirmPassword, true)) return;
+
+    const adminData = { name, email };
+    if (password) adminData.password = password;
+
+    await apiRequest(`/admin/secondary-admin/${editingAdminId}`, 'PUT', adminData);
+
+    createAdminModal.classList.remove('show');
+    adminModal.style.display = 'none';
+
+    showToast('Administrator updated successfully', 'success');
+    await loadSecondaryAdmins();
+  } catch (error) {
+    console.error('Error updating admin:', error);
+    showToast('Failed to update administrator', 'error');
+  }
+}
+
+// Common validation
+function validateForm(name, email, password, confirmPassword, isEdit = false) {
+  if (!name || !email || (!isEdit && (!password || !confirmPassword))) {
+    showToast('All fields are required', 'error');
+    return false;
+  }
+  if (!isEdit && password !== confirmPassword) {
+    showToast('Passwords do not match', 'error');
+    return false;
+  }
+  if (password && password.length < 6) {
+    showToast('Password must be at least 6 characters long', 'error');
+    return false;
+  }
+  return true;
+}
+
+
 
 // Delete admin
 async function deleteAdmin(adminId) {
   try {
     // Delete admin
-    await apiRequest(`/admin/secondary-admins/${adminId}`, 'DELETE');
-    
+    await apiRequest(`/admin/secondary-admin/${adminId}`, 'DELETE');
     // Close modal
     confirmDeleteAdminModal.classList.remove('show');
-    
     // Show success message
-    showNotification('Administrator removed successfully', 'success');
-    
+    showToast('Administrator removed successfully', 'success');
     // Reload secondary admins
     await loadSecondaryAdmins();
   } catch (error) {
     console.error('Error deleting admin:', error);
-    showNotification('Failed to remove administrator', 'error');
+    showToast('Failed to remove administrator', 'error');
   }
 }
 
 // Setup event listeners
 function setupEventListeners() {
   // Profile form
-  saveProfileBtn.addEventListener('click', saveProfileChanges);
-  
-  // Password form
-  updatePasswordBtn.addEventListener('click', updatePassword);
-  
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', saveProfileChanges);
+  }
   // Theme options
-  themeOptions.forEach(option => {
-    option.addEventListener('click', () => {
-      themeOptions.forEach(opt => opt.classList.remove('selected'));
-      option.classList.add('selected');
+  if (themeOptions && themeOptions.length > 0) {
+    themeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        themeOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+      });
     });
-  });
-  
+  }
   // Appearance form
-  saveAppearanceBtn.addEventListener('click', saveAppearanceSettings);
-  
+  if (saveAppearanceBtn) {
+    saveAppearanceBtn.addEventListener('click', saveAppearanceSettings);
+  }
   // Add admin button
-  addAdminBtn.addEventListener('click', openCreateAdminModal);
-  
+  if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', () => {
+      openCreateAdminModal();
+    });
+  }
   // Create admin modal
-  closeCreateAdmin.addEventListener('click', () => {
-    createAdminModal.classList.remove('show');
-  });
-  
-  cancelCreateAdmin.addEventListener('click', () => {
-    createAdminModal.classList.remove('show');
-  });
-  
-  saveAdminBtn.addEventListener('click', createAdmin);
-  
-  // Confirm delete modal
-  closeConfirmDeleteAdmin.addEventListener('click', () => {
-    confirmDeleteAdminModal.classList.remove('show');
-  });
-  
-  cancelDeleteAdmin.addEventListener('click', () => {
-    confirmDeleteAdminModal.classList.remove('show');
-  });
-  
-  confirmDeleteAdmin.addEventListener('click', () => {
-    deleteAdmin(confirmDeleteAdmin.dataset.id);
-  });
-  
-  // Close modals when clicking outside
-  createAdminModal.addEventListener('click', (e) => {
-    if (e.target === createAdminModal) {
+  if (closeCreateAdmin) {
+    closeCreateAdmin.addEventListener('click', () => {
       createAdminModal.classList.remove('show');
-    }
-  });
-  
-  confirmDeleteAdminModal.addEventListener('click', (e) => {
-    if (e.target === confirmDeleteAdminModal) {
+      adminModal.style.display = 'none';
+    });
+  }
+
+  if (cancelCreateAdmin) {
+    cancelCreateAdmin.addEventListener('click', () => {
+      createAdminModal.classList.remove('show');
+      adminModal.style.display = 'none';
+    });
+  }
+
+  if (saveAdminBtn) {
+    // Save button click
+    saveAdminBtn.addEventListener('click', async () => {
+      if (isEditMode) {
+        await updateAdmin();
+      } else {
+        await createAdmin();
+      }
+    });
+  }
+
+  // Confirm delete modal
+  if (closeConfirmDeleteAdmin) {
+    closeConfirmDeleteAdmin.addEventListener('click', () => {
       confirmDeleteAdminModal.classList.remove('show');
+    });
+  }
+
+  if (cancelDeleteAdmin) {
+    cancelDeleteAdmin.addEventListener('click', () => {
+      confirmDeleteAdminModal.classList.remove('show');
+    });
+  }
+
+  if (confirmDeleteAdmin) {
+    confirmDeleteAdmin.addEventListener('click', () => {
+      deleteAdmin(confirmDeleteAdmin.dataset.id);
+
+    });
+  }
+
+  // Close modals when clicking outside
+  if (createAdminModal) {
+    createAdminModal.addEventListener('click', (e) => {
+      if (e.target === createAdminModal) {
+        createAdminModal.classList.remove('show');
+        adminModal.style.display = 'none';
+      }
+    });
+  }
+
+  if (confirmDeleteAdminModal) {
+    confirmDeleteAdminModal.addEventListener('click', (e) => {
+      if (e.target === confirmDeleteAdminModal) {
+        confirmDeleteAdminModal.classList.remove('show');
+      }
+    });
+  }
+}
+
+// Password toggle functionality
+document.querySelectorAll('.toggle-password').forEach(button => {
+  button.addEventListener('click', function () {
+    const input = this.previousElementSibling;
+    const icon = this.querySelector('i');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
     }
   });
-}
+});
+
 
 // Initialize settings page when DOM is loaded
 document.addEventListener('DOMContentLoaded', initSettingsPage);
