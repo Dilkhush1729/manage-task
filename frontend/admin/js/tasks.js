@@ -870,7 +870,7 @@ async function deleteTasks(taskIds) {
     confirmDeleteModal.classList.remove('show');
     
     // Show success message
-    showNotification(`${taskIds.length} task(s) deleted successfully`, 'success');
+    showNotification(`${taskIds.length} task(s) deleted successfully`, 'error');
     
     // Clear selected tasks
     selectedTasks.clear();
@@ -887,24 +887,16 @@ async function deleteTasks(taskIds) {
 // Mark tasks as completed
 async function markTasksAsCompleted(taskIds) {
   try {
-    // Update each task
-    const updatePromises = taskIds.map(taskId => 
-      apiRequest(`/admin/tasks/${taskId}`, 'PUT', { completed: true })
-    );
-    
-    await Promise.all(updatePromises);
-    
-    // Show success message
+    await apiRequest(`/admin/tasks/bulk/complete`, 'PUT', { taskIds });
+
     showNotification(`${taskIds.length} task(s) marked as completed`, 'success');
     
     // Clear selected tasks
     selectedTasks.clear();
     updateBulkActions();
-    
-    // Reload tasks
     loadTasks(currentPage, getFilters());
   } catch (error) {
-    console.error('Error updating tasks:', error);
+    console.error('Error marking tasks as completed:', error);
     showNotification('Failed to update tasks', 'error');
   }
 }

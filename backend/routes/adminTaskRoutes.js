@@ -152,6 +152,32 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// ✅ Bulk mark tasks as completed
+router.put('/bulk/complete', async (req, res) => {
+  try {
+    const { taskIds } = req.body;
+
+    if (!Array.isArray(taskIds) || taskIds.length === 0) {
+      return res.status(400).json({ message: 'No task IDs provided' });
+    }
+
+    // Bulk update tasks
+    const result = await Task.updateMany(
+      { _id: { $in: taskIds } },
+      { $set: { completed: true } }
+    );
+
+    res.json({
+      message: `${result.modifiedCount} task(s) marked as completed`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Error marking tasks as completed:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // Delete task
 router.delete('/:id', async (req, res) => {
   try {
